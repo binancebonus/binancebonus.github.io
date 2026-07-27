@@ -1,613 +1,545 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NORMIES Burned NFT Extractor</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: #0b0f17;
-      color: #f3f4f6;
-    }
-    .glass-card {
-      background: rgba(17, 24, 39, 0.75);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .gradient-text {
-      background: linear-gradient(135deg, #ef4444 0%, #ec4899 50%, #8b5cf6 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .download-btn {
-      transition: all 0.2s;
-    }
-    .download-btn:hover {
-      transform: scale(1.05);
-    }
-    .nft-card {
-      transition: all 0.3s;
-    }
-    .nft-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(239, 68, 68, 0.5);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG কালার পরিবর্তনকারী 🎨</title>
+    <!-- JSZip এবং FileSaver লাইব্রেরি -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #f6f9fc 0%, #e9f1f7 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 780px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 40px 35px;
+            box-shadow: 0 25px 50px -8px rgba(0, 20, 30, 0.25), 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.2s ease;
+        }
+        h1 {
+            font-size: 2.1rem;
+            font-weight: 600;
+            color: #1e2b32;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .subhead {
+            color: #3a4e5a;
+            font-size: 0.98rem;
+            margin-bottom: 28px;
+            padding-bottom: 18px;
+            border-bottom: 2px dashed #d0dee9;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .color-badge {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            background: #eef4f9;
+            padding: 8px 18px 8px 18px;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .color-swatch {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border-radius: 8px;
+            margin-right: 6px;
+            vertical-align: middle;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+        .upload-area {
+            background: #f0f6fd;
+            border: 2px dashed #b8cfde;
+            border-radius: 30px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: 0.2s;
+            margin-bottom: 28px;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            background: #e8f0f9;
+            border-color: #7fa5bb;
+        }
+        .upload-area svg {
+            opacity: 0.6;
+        }
+        .upload-area p {
+            color: #2b4455;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-list {
+            margin: 18px 0 22px 0;
+            background: #f5faff;
+            border-radius: 28px;
+            padding: 10px 20px;
+            min-height: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 16px;
+            border: 1px solid #d5e3ee;
+        }
+        .file-tag {
+            background: white;
+            border-radius: 40px;
+            padding: 6px 16px 6px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1a3340;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            border: 1px solid #cbdde9;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .file-tag .remove {
+            cursor: pointer;
+            color: #9aafbd;
+            font-weight: 600;
+            transition: 0.1s;
+        }
+        .file-tag .remove:hover {
+            color: #c74b4b;
+        }
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0 8px 0;
+        }
+        .btn {
+            background: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1c3747;
+            box-shadow: 0 6px 14px rgba(0, 20, 30, 0.08);
+            border: 1px solid #d0e0eb;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.15s;
+            cursor: pointer;
+            background: #f5faff;
+        }
+        .btn-primary {
+            background: #1e2f3b;
+            border: 1px solid #1e2f3b;
+            color: white;
+            box-shadow: 0 8px 18px rgba(20, 40, 55, 0.25);
+        }
+        .btn-primary:hover {
+            background: #0f1f2a;
+            transform: scale(0.97);
+        }
+        .btn-primary:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(0.5);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #b8cfde;
+        }
+        .btn-outline:hover {
+            background: #e5eff7;
+        }
+        .btn-success {
+            background: #1f8b5b;
+            border-color: #1f8b5b;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #14734b;
+        }
+        .status {
+            margin-top: 18px;
+            padding: 12px 18px;
+            border-radius: 40px;
+            background: #e3eef8;
+            font-size: 0.95rem;
+            color: #124052;
+            border-left: 6px solid #3a8bb0;
+            transition: 0.2s;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .status .info {
+            font-weight: 450;
+        }
+        .status .badge {
+            background: #2b5a73;
+            color: white;
+            padding: 4px 18px;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 0.8rem;
+            color: #607d8e;
+        }
+        .hidden {
+            display: none;
+        }
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body class="min-h-screen flex flex-col">
-
-  <!-- Header -->
-  <header class="sticky top-0 z-40 backdrop-blur-md bg-[#0b0f17]/90 border-b border-white/10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-red-500/20">
-          <i class="fa-solid fa-fire"></i>
-        </div>
-        <span class="text-xl font-bold tracking-tight text-white">NORMIES <span class="gradient-text">Burned Extractor</span></span>
-      </div>
-
-      <div class="flex items-center gap-3 flex-wrap">
-        <button id="downloadImagesBtn" onclick="downloadImagesZip()" disabled class="text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl bg-gray-800 text-gray-500 cursor-not-allowed transition flex items-center gap-2 border border-white/5">
-          <i class="fa-solid fa-file-zipper"></i>
-          <span>Download All ZIP</span>
-        </button>
-        <button id="downloadJsonBtn" onclick="downloadMetadataZip()" disabled class="text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl bg-gray-800 text-gray-500 cursor-not-allowed transition flex items-center gap-2 border border-white/5">
-          <i class="fa-solid fa-code"></i>
-          <span>Download JSON ZIP</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
-
-    <!-- Config Card -->
-    <div class="glass-card p-6 rounded-2xl mb-8 border border-white/10">
-
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
-        <div class="md:col-span-5">
-          <label class="block text-xs text-gray-400 mb-1 font-medium">Alchemy API Key</label>
-          <input type="text" id="apiKeyInput" value="azGUMoPxCx4XzlybaCSyc" placeholder="আপনার Alchemy API Key দিন" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500 transition font-mono">
-        </div>
-        <div class="md:col-span-7">
-          <label class="block text-xs text-gray-400 mb-1 font-medium">NFT Contract Address</label>
-          <input type="text" id="contractInput" value="0x9eb6e2025b64f340691e424b7fe7022ffde12438" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500 transition font-mono">
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end border-t border-white/10 pt-4">
-        <div class="sm:col-span-4">
-          <label class="block text-xs text-gray-400 mb-1 font-medium">Scan Start Token ID</label>
-          <input type="number" id="rangeStart" value="1" min="1" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500 font-mono">
+<body>
+    <div class="card">
+        <h1>
+            <span>🖌️ SVG রঙ বদল</span>
+        </h1>
+        <div class="subhead">
+            <span>📁 জিপ আপলোড করুন · SVG ছবি</span>
+            <span class="color-badge">
+                <span><span class="color-swatch" style="background:#48494B;"></span> #48494B → কালো</span>
+                <span><span class="color-swatch" style="background:#E3E5E4;"></span> #E3E5E4 → <span style="color:#b5d400; font-weight:700;">#d4ff00</span></span>
+            </span>
         </div>
 
-        <div class="sm:col-span-4">
-          <label class="block text-xs text-gray-400 mb-1 font-medium">Scan End Token ID</label>
-          <input type="number" id="rangeEnd" value="10000" min="1" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500 font-mono">
+        <!-- আপলোড এরিয়া -->
+        <div class="upload-area" id="uploadArea">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#2b5a73" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p><strong>জিপ ফোল্ডার</strong> টেনে আনুন বা ক্লিক করুন</p>
+            <span style="font-size:0.8rem; color:#4c7188;">(শুধু .zip, ভিতরে SVG ফাইল)</span>
+        </div>
+        <input type="file" id="fileInput" class="file-input" accept=".zip">
+
+        <!-- ফাইল লিস্ট -->
+        <div class="file-list" id="fileList">
+            <span style="color:#6f8fa3; font-size:0.9rem;">📂 কোনো জিপ ফাইল নির্বাচন করা হয়নি</span>
         </div>
 
-        <div class="sm:col-span-4">
-          <button id="scanBtn" onclick="startScan()" class="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold py-2.5 px-4 rounded-xl hover:opacity-90 transition shadow-lg shadow-red-500/20 flex items-center justify-center gap-2 text-sm">
-            <i class="fa-solid fa-magnifying-glass font-bold"></i> Extract Burned NORMIES
-          </button>
+        <!-- অ্যাকশন বাটন -->
+        <div class="action-bar">
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn btn-outline" id="clearBtn" disabled>🗑️ সাফ করুন</button>
+                <button class="btn btn-primary" id="processBtn" disabled>⚡ প্রসেস & ডাউনলোড</button>
+            </div>
+            <span style="font-weight:400; color:#1c445b; background:#e1edf6; padding:6px 20px; border-radius:40px; font-size:0.85rem;">
+                <span id="fileCount">0</span> টি SVG
+            </span>
         </div>
-      </div>
 
+        <!-- স্ট্যাটাস বার -->
+        <div class="status" id="statusBar">
+            <span class="info">⏳ অপেক্ষা করুন ...</span>
+            <span class="badge" id="statusBadge">প্রস্তুত</span>
+        </div>
+        <div class="footer-note">
+            ⚡ প্রতি SVG তে #48494B → #000000 (কালো) & #E3E5E4 → #d4ff00
+        </div>
     </div>
 
-    <!-- Live Status Box -->
-    <div id="statusBox" class="glass-card p-6 rounded-2xl mb-8 border border-white/10 hidden">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-3">
-          <div id="statusDot" class="w-3 h-3 rounded-full bg-red-500 animate-ping"></div>
-          <span id="statusText" class="text-sm font-semibold text-white">Scanning Contract for Burned Tokens...</span>
-        </div>
-        <span id="progressCount" class="text-xs font-mono text-red-400 font-bold">0 Burned Found</span>
-      </div>
-      <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden border border-white/5">
-        <div id="progressBar" class="bg-red-500 h-full w-0 transition-all duration-150"></div>
-      </div>
-    </div>
+    <script>
+        (function() {
+            "use strict";
 
-    <!-- Gallery Header -->
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-bold text-white flex items-center gap-2">
-        <i class="fa-solid fa-fire text-red-500"></i>
-        Burned NORMIES Collection
-      </h2>
-      <div class="text-xs text-gray-400 font-mono">
-        Total Loaded: <span id="loadedCount" class="text-red-400 font-bold">0</span>
-      </div>
-    </div>
+            // DOM রেফারেন্স
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const fileList = document.getElementById('fileList');
+            const clearBtn = document.getElementById('clearBtn');
+            const processBtn = document.getElementById('processBtn');
+            const fileCountSpan = document.getElementById('fileCount');
+            const statusBar = document.getElementById('statusBar');
+            const statusBadge = document.getElementById('statusBadge');
 
-    <!-- NFT Grid -->
-    <div id="nftGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+            // স্টোরেজ
+            let currentZipFile = null;          // ফাইল অবজেক্ট
+            let svgFilenames = [];              // শুধু .svg ফাইলের নাম
+            let processedBlob = null;           // শেষ প্রক্রিয়াজাত জিপ ব্লব
 
-  </main>
-
-  <footer class="border-t border-white/10 py-6 bg-black/40 text-center text-xs text-gray-500">
-    Direct Smart Contract & ENS Resolver Reader | 100% On-Chain SVG Extraction
-  </footer>
-
-  <script>
-    let burnedNFTs = [];
-    let isFetching = false;
-    const ensCache = new Map();
-    const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
-
-    function encodeTokenURI(tokenId) {
-      return "0xc87b56dd" + BigInt(tokenId).toString(16).padStart(64, '0');
-    }
-
-    // Advanced On-Chain ABI String & Base64 Decoder
-    function decodeABIString(hexString) {
-      if (!hexString || hexString === "0x") return null;
-      let cleanHex = hexString.replace(/^0x/, '');
-      if (cleanHex.length >= 128) {
-        let lengthHex = cleanHex.substring(64, 128);
-        let strLen = parseInt(lengthHex, 16);
-        let dataHex = cleanHex.substring(128, 128 + (strLen * 2));
-        if (dataHex.length === 0) return null;
-        let bytes = new Uint8Array(dataHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-        return new TextDecoder().decode(bytes);
-      }
-      return null;
-    }
-
-    function parseOnChainMetadata(uriString) {
-      if (!uriString) return null;
-      try {
-        if (uriString.startsWith('data:application/json;base64,')) {
-          const base64Data = uriString.replace('data:application/json;base64,', '');
-          return JSON.parse(atob(base64Data));
-        } else if (uriString.startsWith('data:application/json;utf8,')) {
-          return JSON.parse(decodeURIComponent(uriString.replace('data:application/json;utf8,', '')));
-        } else if (uriString.startsWith('data:application/json,')) {
-          return JSON.parse(decodeURIComponent(uriString.replace('data:application/json,', '')));
-        } else if (uriString.trim().startsWith('{')) {
-          return JSON.parse(uriString);
-        }
-      } catch (e) {
-        console.error("On-chain Metadata JSON Parse error", e);
-      }
-      return null;
-    }
-
-    async function rpcCall(rpcUrl, payload) {
-      const res = await fetch(rpcUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`HTTP ${res.status}: ${text.substring(0, 200)}`);
-      }
-      return res.json();
-    }
-
-    async function resolveENS(apiKey, address) {
-      if (!address || address === NULL_ADDRESS) return address;
-      if (ensCache.has(address)) return ensCache.get(address);
-
-      try {
-        const url = `https://eth-mainnet.g.alchemy.com/v2/${apiKey}`;
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'alchemy_lookupAddress',
-            params: [address]
-          })
-        });
-        const data = await res.json();
-        if (data.result) {
-          ensCache.set(address, data.result);
-          return data.result;
-        }
-      } catch (e) {}
-      ensCache.set(address, address);
-      return address;
-    }
-
-    async function fetchBurnTransfersViaAssetTransfers(rpcUrl, contract, statusText, progressBar) {
-      const allTransfers = [];
-      let pageKey = undefined;
-      let page = 0;
-
-      do {
-        page++;
-        const params = {
-          fromBlock: "0x0",
-          toBlock: "latest",
-          toAddress: NULL_ADDRESS,
-          contractAddresses: [contract],
-          category: ["erc721", "erc1155"],
-          withMetadata: true,
-          excludeZeroValue: false,
-          maxCount: "0x3e8"
-        };
-        if (pageKey) params.pageKey = pageKey;
-
-        const data = await rpcCall(rpcUrl, {
-          jsonrpc: "2.0",
-          id: 1,
-          method: "alchemy_getAssetTransfers",
-          params: [params]
-        });
-
-        if (data.error) throw new Error(data.error.message || "alchemy_getAssetTransfers failed");
-
-        const result = data.result || {};
-        const transfers = result.transfers || [];
-        allTransfers.push(...transfers);
-        pageKey = result.pageKey;
-
-        statusText.innerText = `Finding Burn Logs... Page ${page} (${allTransfers.length} transfers found)`;
-        const pct = Math.min(30, 5 + page * 5);
-        progressBar.style.width = pct + "%";
-
-      } while (pageKey);
-
-      return allTransfers;
-    }
-
-    // ============= 100% ON-CHAIN BLOB EXTRACTOR =============
-    function extractOnChainImageBlob(imgRaw) {
-      if (!imgRaw) return null;
-
-      try {
-        let rawStr = imgRaw.trim();
-
-        // 1. Direct SVG Source Code
-        if (rawStr.startsWith('<svg')) {
-          return { blob: new Blob([rawStr], { type: 'image/svg+xml' }), ext: 'svg' };
-        }
-
-        // 2. Base64 Encoded SVG
-        if (rawStr.startsWith('data:image/svg+xml;base64,')) {
-          let base64 = rawStr.replace('data:image/svg+xml;base64,', '');
-          let svgText = atob(base64);
-          return { blob: new Blob([svgText], { type: 'image/svg+xml' }), ext: 'svg' };
-        }
-
-        // 3. UTF-8 Encoded SVG
-        if (rawStr.startsWith('data:image/svg+xml;utf8,')) {
-          let svgText = decodeURIComponent(rawStr.replace('data:image/svg+xml;utf8,', ''));
-          return { blob: new Blob([svgText], { type: 'image/svg+xml' }), ext: 'svg' };
-        }
-
-        // 4. Plain data:image/svg+xml
-        if (rawStr.startsWith('data:image/svg+xml,')) {
-          let svgText = decodeURIComponent(rawStr.replace('data:image/svg+xml,', ''));
-          return { blob: new Blob([svgText], { type: 'image/svg+xml' }), ext: 'svg' };
-        }
-
-        // 5. Generic Data URL PNG/JPEG
-        if (rawStr.startsWith('data:image/')) {
-          let parts = rawStr.split(',');
-          let mime = parts[0].match(/:(.*?);/)[1];
-          let ext = mime.includes('png') ? 'png' : (mime.includes('jpeg') ? 'jpg' : 'svg');
-          
-          let bstr = atob(parts[1]);
-          let n = bstr.length;
-          let u8arr = new Uint8Array(n);
-          while(n--){
-            u8arr[n] = bstr.charCodeAt(n);
-          }
-          return { blob: new Blob([u8arr], { type: mime }), ext };
-        }
-
-      } catch (e) {
-        console.error("Error extracting Blob:", e);
-      }
-      return null;
-    }
-
-    // ============= SINGLE DOWNLOAD =============
-    async function downloadSingleImage(tokenId) {
-      const nft = burnedNFTs.find(n => n.tokenId === tokenId);
-      if (!nft || !nft.image) return;
-
-      const imgData = extractOnChainImageBlob(nft.image);
-      if (imgData && imgData.blob) {
-        saveAs(imgData.blob, `NORMIES_${tokenId}.${imgData.ext}`);
-      } else {
-        alert("অন-চেইন ইমেজ রিড করতে ব্যর্থ হয়েছে!");
-      }
-    }
-
-    // ============= FAST ON-CHAIN ZIP GENERATOR =============
-    async function generateSequentialZip(items, type, statusText, progressBar) {
-      const zip = new JSZip();
-      const total = items.length;
-
-      for (let i = 0; i < total; i++) {
-        const nft = items[i];
-        const serialNum = i + 1;
-
-        if (type === 'image') {
-          let imgData = extractOnChainImageBlob(nft.image);
-          if (imgData && imgData.blob) {
-            zip.file(`${serialNum}.${imgData.ext}`, imgData.blob);
-          }
-        } else {
-          zip.file(`${serialNum}.json`, JSON.stringify(nft.rawMetadata, null, 2));
-        }
-
-        if (i % 10 === 0 || i === total - 1) {
-          const pct = Math.floor(((i + 1) / total) * 100);
-          statusText.innerText = `Generating ZIP: ${serialNum}/${total}`;
-          progressBar.style.width = pct + '%';
-          await new Promise(r => setTimeout(r, 0));
-        }
-      }
-
-      return await zip.generateAsync({ 
-        type: "blob", 
-        compression: "DEFLATE",
-        mimeType: "application/zip"
-      });
-    }
-
-    // ============= DOWNLOAD ZIP FUNCTIONS =============
-    async function downloadImagesZip() {
-      if (burnedNFTs.length === 0) return;
-      const statusBox = document.getElementById("statusBox");
-      const statusText = document.getElementById("statusText");
-      const progressBar = document.getElementById("progressBar");
-      statusBox.classList.remove("hidden");
-      statusText.innerText = "Preparing On-Chain Images ZIP...";
-      progressBar.style.width = "0%";
-
-      try {
-        const blob = await generateSequentialZip(burnedNFTs, 'image', statusText, progressBar);
-        saveAs(blob, `NORMIES_OnChain_Images.zip`);
-        statusText.innerText = "✅ ZIP download complete!";
-        progressBar.style.width = "100%";
-        setTimeout(() => statusBox.classList.add("hidden"), 3000);
-      } catch (err) {
-        console.error("ZIP Error:", err);
-        statusText.innerText = "❌ ZIP error: " + err.message;
-      }
-    }
-
-    async function downloadMetadataZip() {
-      if (burnedNFTs.length === 0) return;
-      const statusBox = document.getElementById("statusBox");
-      const statusText = document.getElementById("statusText");
-      const progressBar = document.getElementById("progressBar");
-      statusBox.classList.remove("hidden");
-      statusText.innerText = "Preparing Metadata ZIP...";
-      progressBar.style.width = "0%";
-
-      try {
-        const blob = await generateSequentialZip(burnedNFTs, 'metadata', statusText, progressBar);
-        saveAs(blob, `NORMIES_Metadata.zip`);
-        statusText.innerText = "✅ JSON ZIP downloaded!";
-        progressBar.style.width = "100%";
-        setTimeout(() => statusBox.classList.add("hidden"), 3000);
-      } catch (err) {
-        console.error("ZIP Error:", err);
-        statusText.innerText = "❌ ZIP error: " + err.message;
-      }
-    }
-
-    // ============= MAIN SCAN =============
-    async function startScan() {
-      if (isFetching) return;
-
-      const apiKey = document.getElementById("apiKeyInput").value.trim();
-      const contract = document.getElementById("contractInput").value.trim();
-      const startNum = parseInt(document.getElementById("rangeStart").value) || 1;
-      const endNum = parseInt(document.getElementById("rangeEnd").value) || 10000;
-
-      if (!apiKey) {
-        alert("দয়া করে আপনার Alchemy API Key দিন।");
-        return;
-      }
-
-      isFetching = true;
-
-      const grid = document.getElementById("nftGrid");
-      const statusBox = document.getElementById("statusBox");
-      const statusText = document.getElementById("statusText");
-      const progressBar = document.getElementById("progressBar");
-      const progressCount = document.getElementById("progressCount");
-      const loadedCount = document.getElementById("loadedCount");
-
-      grid.innerHTML = "";
-      burnedNFTs = [];
-      statusBox.classList.remove("hidden");
-      progressBar.style.width = "5%";
-      loadedCount.innerText = "0";
-      progressCount.innerText = "0 Burned Found";
-
-      const rpcUrl = `https://eth-mainnet.g.alchemy.com/v2/${apiKey}`;
-
-      try {
-        statusText.innerText = "Querying Burn Logs...";
-        const transfers = await fetchBurnTransfersViaAssetTransfers(rpcUrl, contract, statusText, progressBar);
-
-        let burnedTokenMap = new Map();
-        
-        transfers.forEach(t => {
-          let tokenIdHex = t.erc721TokenId || (t.erc1155Metadata && t.erc1155Metadata[0] && t.erc1155Metadata[0].tokenId);
-          if (!tokenIdHex) return;
-          let tokenId = parseInt(tokenIdHex, 16);
-
-          if (tokenId >= startNum && tokenId <= endNum) {
-            let rawAddress = t.from || NULL_ADDRESS;
-            let blockTimestamp = t.metadata && t.metadata.blockTimestamp ? t.metadata.blockTimestamp : null;
-            
-            let d = blockTimestamp ? new Date(blockTimestamp) : new Date();
-            let yearStr = d.getUTCFullYear().toString();
-            let monthStr = d.toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
-            let fullDateStr = d.toISOString().split('T')[0];
-
-            burnedTokenMap.set(tokenId, {
-              rawBurner: rawAddress,
-              burnYear: yearStr,
-              burnMonth: monthStr,
-              burnFullDate: fullDateStr
-            });
-          }
-        });
-
-        let burnedTokenList = Array.from(burnedTokenMap.keys()).sort((a, b) => a - b);
-
-        statusText.innerText = `Found ${burnedTokenList.length} Burned Tokens!`;
-        progressCount.innerText = `${burnedTokenList.length} Burned Found`;
-        progressBar.style.width = "40%";
-
-        if (burnedTokenList.length === 0) {
-          statusText.innerText = "No Burned tokens found in this range!";
-          isFetching = false;
-          return;
-        }
-
-        const CONCURRENCY = 8;
-        let processedCount = 0;
-
-        // Direct Smart Contract Reading (100% On-Chain)
-        async function fetchOneToken(tokenId) {
-          let burnInfo = burnedTokenMap.get(tokenId);
-          let finalBurnerIdentifier = await resolveENS(apiKey, burnInfo.rawBurner);
-          let meta = null;
-
-          try {
-            // Smart Contract RPC Direct Call tokenURI()
-            const res = await rpcCall(rpcUrl, {
-              jsonrpc: "2.0",
-              id: tokenId,
-              method: "eth_call",
-              params: [{ to: contract, data: encodeTokenURI(tokenId) }, "latest"]
-            });
-
-            if (res.result && res.result !== "0x") {
-              const rawUri = decodeABIString(res.result);
-              meta = parseOnChainMetadata(rawUri);
+            // হেল্পার: স্ট্যাটাস আপডেট
+            function setStatus(message, badgeText, isGood = true) {
+                const infoEl = statusBar.querySelector('.info');
+                if (infoEl) infoEl.textContent = message;
+                if (badgeText) {
+                    statusBadge.textContent = badgeText;
+                    statusBadge.style.background = isGood ? '#1f6f4b' : '#a14747';
+                }
             }
-          } catch (e) {
-            console.error(`Error reading on-chain URI for #${tokenId}`, e);
-          }
 
-          if (meta && meta.image) {
-            let originalMetadata = JSON.parse(JSON.stringify(meta));
-            let existingAttributes = Array.isArray(originalMetadata.attributes) ? originalMetadata.attributes : [];
+            // রিসেট UI (ফাইল ক্লিয়ার)
+            function resetFileUI() {
+                currentZipFile = null;
+                svgFilenames = [];
+                processedBlob = null;
+                fileList.innerHTML = `<span style="color:#6f8fa3; font-size:0.9rem;">📂 কোনো জিপ ফাইল নির্বাচন করা হয়নি</span>`;
+                fileCountSpan.textContent = '0';
+                clearBtn.disabled = true;
+                processBtn.disabled = true;
+                setStatus('⏳ নতুন জিপ আপলোড করুন', 'প্রস্তুত', true);
+            }
 
-            let newAttributes = [
-              ...existingAttributes,
-              { trait_type: "NORMIES", value: `#${tokenId}` },
-              { trait_type: "Burned By", value: finalBurnerIdentifier },
-              { trait_type: "Burn Year", value: burnInfo.burnYear },
-              { trait_type: "Burn Month", value: burnInfo.burnMonth },
-              { trait_type: "Burn Date", value: burnInfo.burnFullDate }
-            ];
+            // ফাইল লিস্ট রেন্ডার
+            function renderFileList() {
+                if (!currentZipFile) {
+                    resetFileUI();
+                    return;
+                }
+                if (svgFilenames.length === 0) {
+                    fileList.innerHTML = `<span style="color:#b1654b;">⚠️ জিপে কোনো .svg ফাইল নেই</span>`;
+                    fileCountSpan.textContent = '0';
+                    clearBtn.disabled = false;
+                    processBtn.disabled = true;
+                    setStatus('⛔ জিপে SVG নেই', 'ত্রুটি', false);
+                    return;
+                }
+                // ফাইল ট্যাগ তৈরি
+                let html = '';
+                svgFilenames.forEach((name, idx) => {
+                    html += `<span class="file-tag">📄 ${name} <span class="remove" data-idx="${idx}">✕</span></span>`;
+                });
+                fileList.innerHTML = html;
+                fileCountSpan.textContent = svgFilenames.length;
+                clearBtn.disabled = false;
+                processBtn.disabled = false;
+                setStatus(`✅ ${svgFilenames.length} টি SVG পাওয়া গেছে`, 'প্রস্তুত', true);
 
-            let enrichedMetadata = {
-              ...originalMetadata,
-              name: `NORMIES #${tokenId}`,
-              description: originalMetadata.description || `Burned NORMIES NFT #${tokenId}`,
-              attributes: newAttributes
-            };
+                // প্রতিটি ফাইলের "✕" এ ক্লিক করলে সেটি বাদ দিতে (শুধু UI থেকে, কিন্তু জিপ থেকে রিমুভ না)
+                // বাস্তবে জিপ থেকে রিমুভ করা জটিল, তাই শুধু UI তে দেখাবো না, কিন্তু প্রক্রিয়ায় আবার সবাই আসবে।
+                // আমরা "সাফ" বাটনে পুরো রিসেট করবো।
+                document.querySelectorAll('.file-tag .remove').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const idx = parseInt(this.dataset.idx);
+                        if (!isNaN(idx) && svgFilenames.length > idx) {
+                            svgFilenames.splice(idx, 1);
+                            renderFileList(); // রি-রেন্ডার
+                        }
+                    });
+                });
+            }
 
-            const nftData = {
-              tokenId: tokenId,
-              name: `NORMIES #${tokenId}`,
-              image: meta.image,
-              burner: finalBurnerIdentifier,
-              burnDate: burnInfo.burnFullDate,
-              rawMetadata: enrichedMetadata
-            };
+            // জিপ পার্স ও SVG নাম বের করা
+            async function parseZipAndExtractSVGNames(zipFile) {
+                try {
+                    const arrayBuffer = await zipFile.arrayBuffer();
+                    const zip = await JSZip.loadAsync(arrayBuffer);
+                    const svgFiles = [];
+                    zip.forEach((relativePath, zipEntry) => {
+                        if (!zipEntry.dir && relativePath.toLowerCase().endsWith('.svg')) {
+                            svgFiles.push(relativePath);
+                        }
+                    });
+                    return { zip, svgFiles };
+                } catch (error) {
+                    console.error('জিপ পার্স করতে সমস্যা:', error);
+                    return null;
+                }
+            }
 
-            burnedNFTs.push(nftData);
-            renderSingleCard(nftData);
-          }
-        }
+            // জিপ ফাইল হ্যান্ডেল
+            async function handleZipFile(file) {
+                resetFileUI();
+                if (!file || file.type !== 'application/zip' && !file.name.toLowerCase().endsWith('.zip')) {
+                    setStatus('❌ শুধু .zip ফাইল সাপোর্টেড', 'ত্রুটি', false);
+                    return;
+                }
+                currentZipFile = file;
+                const result = await parseZipAndExtractSVGNames(file);
+                if (!result) {
+                    setStatus('❌ জিপ পড়া সম্ভব হয়নি', 'ত্রুটি', false);
+                    currentZipFile = null;
+                    return;
+                }
+                const { svgFiles } = result;
+                svgFilenames = svgFiles;
+                renderFileList();
+                if (svgFilenames.length === 0) {
+                    setStatus('⚠️ জিপে কোনো .svg ফাইল নেই', 'সতর্কতা', false);
+                } else {
+                    setStatus(`✅ ${svgFilenames.length} টি SVG পাওয়া গেছে`, 'প্রস্তুত', true);
+                }
+            }
 
-        let nextIndex = 0;
-        async function worker() {
-          while (nextIndex < burnedTokenList.length) {
-            const idx = nextIndex++;
-            const tokenId = burnedTokenList[idx];
-            await fetchOneToken(tokenId);
-            processedCount++;
-            let pct = 40 + Math.floor((processedCount / burnedTokenList.length) * 60);
-            progressBar.style.width = pct + "%";
-            loadedCount.innerText = burnedNFTs.length;
-            statusText.innerText = `Extracting On-Chain: ${processedCount}/${burnedTokenList.length}`;
-          }
-        }
+            // ---------- মূল প্রসেস: কালার রিপ্লেস করে নতুন জিপ ----------
+            async function processAndDownload() {
+                if (!currentZipFile) {
+                    setStatus('❌ আগে একটি জিপ আপলোড করুন', 'ত্রুটি', false);
+                    return;
+                }
+                if (svgFilenames.length === 0) {
+                    setStatus('❌ কোন SVG ফাইল নেই', 'ত্রুটি', false);
+                    return;
+                }
 
-        const workers = [];
-        for (let w = 0; w < CONCURRENCY; w++) workers.push(worker());
-        await Promise.all(workers);
+                // বাটন ডিজেবল ও স্পিনার
+                processBtn.disabled = true;
+                processBtn.innerHTML = `<span class="spinner"></span> প্রক্রিয়াকরণ...`;
+                setStatus('⏳ SVG প্রসেস করা হচ্ছে ...', 'রূপান্তর', true);
 
-        burnedNFTs.sort((a, b) => a.tokenId - b.tokenId);
+                try {
+                    const arrayBuffer = await currentZipFile.arrayBuffer();
+                    const zip = await JSZip.loadAsync(arrayBuffer);
 
-        statusText.innerText = `✅ Success! ${burnedNFTs.length} On-Chain NFTs Loaded!`;
-        progressBar.style.width = "100%";
-        if (burnedNFTs.length > 0) enableDownloadButtons();
+                    // নতুন জিপ অবজেক্ট
+                    const newZip = new JSZip();
 
-      } catch (err) {
-        console.error(err);
-        statusText.innerText = "Error: " + err.message;
-      } finally {
-        isFetching = false;
-      }
-    }
+                    // প্রতিটি SVG ফাইলের জন্য
+                    const svgEntries = [];
+                    zip.forEach((relativePath, zipEntry) => {
+                        if (!zipEntry.dir && relativePath.toLowerCase().endsWith('.svg')) {
+                            svgEntries.push({ path: relativePath, entry: zipEntry });
+                        } else {
+                            // অন্যান্য ফাইল কপি (যেমন folder structure)
+                            if (!zipEntry.dir) {
+                                newZip.file(relativePath, zipEntry._data?.blob || zipEntry._data?.nodeBuffer || zipEntry._data, { binary: true });
+                            } else {
+                                newZip.folder(relativePath);
+                            }
+                        }
+                    });
 
-    function renderSingleCard(nft) {
-      const grid = document.getElementById("nftGrid");
-      const card = document.createElement("div");
-      card.className = "nft-card glass-card rounded-2xl overflow-hidden flex flex-col p-3 border border-red-500/20 shadow-lg";
+                    // প্রতিটি SVG প্রসেস
+                    for (const { path, entry } of svgEntries) {
+                        let content;
+                        try {
+                            content = await entry.async('string');
+                        } catch (e) {
+                            console.warn('পড়া সম্ভব হয়নি:', path, e);
+                            // ফাইলটি বাদ না দিয়ে কপি করি
+                            const blob = await entry.async('blob');
+                            newZip.file(path, blob);
+                            continue;
+                        }
 
-      const displayBurner = nft.burner.endsWith('.eth') ? nft.burner : `${nft.burner.substring(0,6)}...${nft.burner.substring(nft.burner.length-4)}`;
+                        // ১. #48494B → #000000 (কালো) , কেস ইনসেন্সিটিভ
+                        let newContent = content.replace(/#48494B/gi, '#000000');
+                        // ২. #E3E5E4 → #d4ff00 (কেস ইনসেন্সিটিভ)
+                        newContent = newContent.replace(/#E3E5E4/gi, '#d4ff00');
 
-      card.innerHTML = `
-        <div class="relative aspect-square rounded-xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center">
-          <img src="${nft.image}"
-               alt="${nft.name}"
-               loading="lazy"
-               class="w-full h-full object-contain" />
-          <div class="absolute top-2 left-2 bg-red-600/90 text-white font-mono font-bold text-[10px] px-2 py-0.5 rounded-md shadow-md">
-            BURNED
-          </div>
-        </div>
-        <div class="mt-3 px-1 flex-1">
-          <h3 class="font-bold text-white text-sm truncate">${nft.name}</h3>
-          <p class="text-[10px] text-gray-400 font-mono truncate mt-1">Burner: <span class="text-red-400 font-bold">${displayBurner}</span></p>
-          <p class="text-[9px] text-gray-500 font-mono truncate">Date: ${nft.burnDate}</p>
-        </div>
-        <div class="mt-2 px-1">
-          <button onclick="downloadSingleImage(${nft.tokenId})" 
-                  class="w-full download-btn text-xs font-bold py-1.5 rounded-lg bg-red-600/80 hover:bg-red-500 text-white transition flex items-center justify-center gap-1">
-            <i class="fa-solid fa-download"></i> Download
-          </button>
-        </div>
-      `;
-      grid.appendChild(card);
-    }
+                        // নতুন SVG ফাইল যোগ
+                        newZip.file(path, newContent);
+                    }
 
-    function enableDownloadButtons() {
-      const imgBtn = document.getElementById("downloadImagesBtn");
-      const jsonBtn = document.getElementById("downloadJsonBtn");
+                    // জিপ তৈরি
+                    const zipBlob = await newZip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+                    processedBlob = zipBlob;
 
-      imgBtn.disabled = false;
-      imgBtn.className = "text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-500 cursor-pointer transition flex items-center gap-2 shadow-lg shadow-red-500/20";
+                    // ডাউনলোড
+                    const downloadName = currentZipFile.name.replace(/\.zip$/i, '') + '_color_changed.zip';
+                    saveAs(zipBlob, downloadName);
 
-      jsonBtn.disabled = false;
-      jsonBtn.className = "text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl bg-pink-600 text-white hover:bg-pink-500 cursor-pointer transition flex items-center gap-2 shadow-lg shadow-pink-500/20";
-    }
-  </script>
+                    setStatus(`✅ ডাউনলোড শুরু! ${svgFilenames.length} টি SVG পরিবর্তিত`, 'সম্পন্ন', true);
+                } catch (error) {
+                    console.error('প্রক্রিয়াকরণে ত্রুটি:', error);
+                    setStatus(`❌ ত্রুটি: ${error.message || 'অজানা'}`, 'ব্যর্থ', false);
+                } finally {
+                    processBtn.innerHTML = `⚡ প্রসেস & ডাউনলোড`;
+                    processBtn.disabled = (svgFilenames.length === 0 || !currentZipFile);
+                }
+            }
+
+            // ---------- ইভেন্ট লিসেনার ----------
+            // আপলোড এলাকায় ক্লিক
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            // ফাইল ইনপুট পরিবর্তন
+            fileInput.addEventListener('change', async (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    await handleZipFile(file);
+                }
+                fileInput.value = ''; // রিসেট
+            });
+
+            // ড্র্যাগ ও ড্রপ
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.background = '#dde9f5';
+                uploadArea.style.borderColor = '#5f8aa5';
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.background = '#f0f6fd';
+                uploadArea.style.borderColor = '#b8cfde';
+            });
+            uploadArea.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                uploadArea.style.background = '#f0f6fd';
+                uploadArea.style.borderColor = '#b8cfde';
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].name.toLowerCase().endsWith('.zip')) {
+                    await handleZipFile(files[0]);
+                } else {
+                    setStatus('❌ শুধু .zip ফাইল ড্রপ করুন', 'ত্রুটি', false);
+                }
+            });
+
+            // ক্লিয়ার বাটন
+            clearBtn.addEventListener('click', () => {
+                resetFileUI();
+                fileInput.value = '';
+                setStatus('🗑️ সবকিছু সাফ করা হয়েছে', 'প্রস্তুত', true);
+            });
+
+            // প্রসেস বাটন
+            processBtn.addEventListener('click', processAndDownload);
+
+            // রিসেট
+            resetFileUI();
+
+            // অতিরিক্ত: window এ saveAs আছে (FileSaver)
+            if (typeof window.saveAs === 'undefined') {
+                console.warn('FileSaver পাওয়া যায়নি');
+            }
+        })();
+    </script>
 </body>
 </html>
