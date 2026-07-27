@@ -1,545 +1,194 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVG কালার পরিবর্তনকারী 🎨</title>
-    <!-- JSZip এবং FileSaver লাইব্রেরি -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            min-height: 100vh;
-            background: linear-gradient(145deg, #f6f9fc 0%, #e9f1f7 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .card {
-            max-width: 780px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border-radius: 48px;
-            padding: 40px 35px;
-            box-shadow: 0 25px 50px -8px rgba(0, 20, 30, 0.25), 0 8px 20px rgba(0,0,0,0.05);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: all 0.2s ease;
-        }
-        h1 {
-            font-size: 2.1rem;
-            font-weight: 600;
-            color: #1e2b32;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
-        }
-        .subhead {
-            color: #3a4e5a;
-            font-size: 0.98rem;
-            margin-bottom: 28px;
-            padding-bottom: 18px;
-            border-bottom: 2px dashed #d0dee9;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .color-badge {
-            display: flex;
-            gap: 18px;
-            flex-wrap: wrap;
-            background: #eef4f9;
-            padding: 8px 18px 8px 18px;
-            border-radius: 60px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        .color-swatch {
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            border-radius: 8px;
-            margin-right: 6px;
-            vertical-align: middle;
-            border: 1px solid rgba(0,0,0,0.08);
-        }
-        .upload-area {
-            background: #f0f6fd;
-            border: 2px dashed #b8cfde;
-            border-radius: 30px;
-            padding: 40px 20px;
-            text-align: center;
-            transition: 0.2s;
-            margin-bottom: 28px;
-            cursor: pointer;
-        }
-        .upload-area:hover {
-            background: #e8f0f9;
-            border-color: #7fa5bb;
-        }
-        .upload-area svg {
-            opacity: 0.6;
-        }
-        .upload-area p {
-            color: #2b4455;
-            font-weight: 500;
-            margin-top: 12px;
-        }
-        .file-input {
-            display: none;
-        }
-        .file-list {
-            margin: 18px 0 22px 0;
-            background: #f5faff;
-            border-radius: 28px;
-            padding: 10px 20px;
-            min-height: 60px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px 16px;
-            border: 1px solid #d5e3ee;
-        }
-        .file-tag {
-            background: white;
-            border-radius: 40px;
-            padding: 6px 16px 6px 16px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #1a3340;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-            border: 1px solid #cbdde9;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .file-tag .remove {
-            cursor: pointer;
-            color: #9aafbd;
-            font-weight: 600;
-            transition: 0.1s;
-        }
-        .file-tag .remove:hover {
-            color: #c74b4b;
-        }
-        .action-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            justify-content: space-between;
-            align-items: center;
-            margin: 20px 0 8px 0;
-        }
-        .btn {
-            background: white;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 60px;
-            font-weight: 600;
-            font-size: 1rem;
-            color: #1c3747;
-            box-shadow: 0 6px 14px rgba(0, 20, 30, 0.08);
-            border: 1px solid #d0e0eb;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: 0.15s;
-            cursor: pointer;
-            background: #f5faff;
-        }
-        .btn-primary {
-            background: #1e2f3b;
-            border: 1px solid #1e2f3b;
-            color: white;
-            box-shadow: 0 8px 18px rgba(20, 40, 55, 0.25);
-        }
-        .btn-primary:hover {
-            background: #0f1f2a;
-            transform: scale(0.97);
-        }
-        .btn-primary:disabled {
-            opacity: 0.4;
-            pointer-events: none;
-            filter: grayscale(0.5);
-        }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #b8cfde;
-        }
-        .btn-outline:hover {
-            background: #e5eff7;
-        }
-        .btn-success {
-            background: #1f8b5b;
-            border-color: #1f8b5b;
-            color: white;
-        }
-        .btn-success:hover {
-            background: #14734b;
-        }
-        .status {
-            margin-top: 18px;
-            padding: 12px 18px;
-            border-radius: 40px;
-            background: #e3eef8;
-            font-size: 0.95rem;
-            color: #124052;
-            border-left: 6px solid #3a8bb0;
-            transition: 0.2s;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .status .info {
-            font-weight: 450;
-        }
-        .status .badge {
-            background: #2b5a73;
-            color: white;
-            padding: 4px 18px;
-            border-radius: 60px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-        .footer-note {
-            text-align: center;
-            margin-top: 22px;
-            font-size: 0.8rem;
-            color: #607d8e;
-        }
-        .hidden {
-            display: none;
-        }
-        .spinner {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top: 2px solid white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Zip Fixer & Image Extractor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0b0f17;
+      color: #f3f4f6;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
 </head>
-<body>
-    <div class="card">
-        <h1>
-            <span>🖌️ SVG রঙ বদল</span>
-        </h1>
-        <div class="subhead">
-            <span>📁 জিপ আপলোড করুন · SVG ছবি</span>
-            <span class="color-badge">
-                <span><span class="color-swatch" style="background:#48494B;"></span> #48494B → কালো</span>
-                <span><span class="color-swatch" style="background:#E3E5E4;"></span> #E3E5E4 → <span style="color:#b5d400; font-weight:700;">#d4ff00</span></span>
-            </span>
-        </div>
+<body class="min-h-screen p-4 sm:p-8 flex flex-col justify-between">
 
-        <!-- আপলোড এরিয়া -->
-        <div class="upload-area" id="uploadArea">
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#2b5a73" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            <p><strong>জিপ ফোল্ডার</strong> টেনে আনুন বা ক্লিক করুন</p>
-            <span style="font-size:0.8rem; color:#4c7188;">(শুধু .zip, ভিতরে SVG ফাইল)</span>
-        </div>
-        <input type="file" id="fileInput" class="file-input" accept=".zip">
-
-        <!-- ফাইল লিস্ট -->
-        <div class="file-list" id="fileList">
-            <span style="color:#6f8fa3; font-size:0.9rem;">📂 কোনো জিপ ফাইল নির্বাচন করা হয়নি</span>
-        </div>
-
-        <!-- অ্যাকশন বাটন -->
-        <div class="action-bar">
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <button class="btn btn-outline" id="clearBtn" disabled>🗑️ সাফ করুন</button>
-                <button class="btn btn-primary" id="processBtn" disabled>⚡ প্রসেস & ডাউনলোড</button>
-            </div>
-            <span style="font-weight:400; color:#1c445b; background:#e1edf6; padding:6px 20px; border-radius:40px; font-size:0.85rem;">
-                <span id="fileCount">0</span> টি SVG
-            </span>
-        </div>
-
-        <!-- স্ট্যাটাস বার -->
-        <div class="status" id="statusBar">
-            <span class="info">⏳ অপেক্ষা করুন ...</span>
-            <span class="badge" id="statusBadge">প্রস্তুত</span>
-        </div>
-        <div class="footer-note">
-            ⚡ প্রতি SVG তে #48494B → #000000 (কালো) & #E3E5E4 → #d4ff00
-        </div>
+  <div class="max-w-4xl mx-auto w-full">
+    
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 mb-3">
+        <i class="fa-solid fa-file-zipper text-3xl"></i>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-white">NORMIES Zip Fixer (Mobile Ready)</h1>
+      <p class="text-xs sm:text-sm text-gray-400 mt-2">ডাউনলোড হওয়া ব্রোকেন জিপ ফাইলটি আপলোড করুন, সব পিকচার ঠিক হয়ে সুন্দর জিপ ফাইল নেমে যাবে!</p>
     </div>
 
-    <script>
-        (function() {
-            "use strict";
+    <!-- Upload Card -->
+    <div class="glass-card p-6 rounded-3xl text-center border-2 border-dashed border-red-500/30 hover:border-red-500/60 transition mb-8">
+      <input type="file" id="zipInput" accept=".zip,.txt,.html,*/*" class="hidden" onchange="processZipFile(event)">
+      <label for="zipInput" class="cursor-pointer flex flex-col items-center justify-center py-6">
+        <i class="fa-solid fa-cloud-arrow-up text-4xl text-red-500 mb-3 animate-bounce"></i>
+        <span class="text-sm font-semibold text-white">ফাইল সিলেক্ট করুন (Zip / Text File)</span>
+        <span class="text-xs text-gray-400 mt-1">মোবাইলে ডাউনলোড হওয়া ফাইলটি সিলেক্ট করুন</span>
+      </label>
+    </div>
 
-            // DOM রেফারেন্স
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('fileInput');
-            const fileList = document.getElementById('fileList');
-            const clearBtn = document.getElementById('clearBtn');
-            const processBtn = document.getElementById('processBtn');
-            const fileCountSpan = document.getElementById('fileCount');
-            const statusBar = document.getElementById('statusBar');
-            const statusBadge = document.getElementById('statusBadge');
+    <!-- Live Status -->
+    <div id="statusBox" class="glass-card p-5 rounded-2xl mb-8 hidden">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-3 h-3 rounded-full bg-red-500 animate-ping"></div>
+        <span id="statusText" class="text-xs sm:text-sm font-semibold text-white">প্রসেসিং হচ্ছে...</span>
+      </div>
+    </div>
 
-            // স্টোরেজ
-            let currentZipFile = null;          // ফাইল অবজেক্ট
-            let svgFilenames = [];              // শুধু .svg ফাইলের নাম
-            let processedBlob = null;           // শেষ প্রক্রিয়াজাত জিপ ব্লব
+    <!-- Actions & Download Button -->
+    <div id="downloadAction" class="hidden text-center mb-8">
+      <button onclick="downloadCleanZip()" class="w-full sm:w-auto bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold py-3.5 px-8 rounded-2xl hover:opacity-90 transition shadow-lg shadow-red-500/20 flex items-center justify-center gap-3 text-sm mx-auto">
+        <i class="fa-solid fa-download text-lg"></i>
+        <span>ডাউনলোড করুন (Fixed Clean ZIP)</span>
+      </button>
+    </div>
 
-            // হেল্পার: স্ট্যাটাস আপডেট
-            function setStatus(message, badgeText, isGood = true) {
-                const infoEl = statusBar.querySelector('.info');
-                if (infoEl) infoEl.textContent = message;
-                if (badgeText) {
-                    statusBadge.textContent = badgeText;
-                    statusBadge.style.background = isGood ? '#1f6f4b' : '#a14747';
-                }
-            }
+    <!-- Preview Gallery -->
+    <div id="previewArea" class="hidden">
+      <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-images text-red-500"></i>
+        রিকভার হওয়া ছবিসমূহ (<span id="totalCount" class="text-red-400">0</span>)
+      </h3>
+      <div id="imageGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+    </div>
 
-            // রিসেট UI (ফাইল ক্লিয়ার)
-            function resetFileUI() {
-                currentZipFile = null;
-                svgFilenames = [];
-                processedBlob = null;
-                fileList.innerHTML = `<span style="color:#6f8fa3; font-size:0.9rem;">📂 কোনো জিপ ফাইল নির্বাচন করা হয়নি</span>`;
-                fileCountSpan.textContent = '0';
-                clearBtn.disabled = true;
-                processBtn.disabled = true;
-                setStatus('⏳ নতুন জিপ আপলোড করুন', 'প্রস্তুত', true);
-            }
+  </div>
 
-            // ফাইল লিস্ট রেন্ডার
-            function renderFileList() {
-                if (!currentZipFile) {
-                    resetFileUI();
-                    return;
-                }
-                if (svgFilenames.length === 0) {
-                    fileList.innerHTML = `<span style="color:#b1654b;">⚠️ জিপে কোনো .svg ফাইল নেই</span>`;
-                    fileCountSpan.textContent = '0';
-                    clearBtn.disabled = false;
-                    processBtn.disabled = true;
-                    setStatus('⛔ জিপে SVG নেই', 'ত্রুটি', false);
-                    return;
-                }
-                // ফাইল ট্যাগ তৈরি
-                let html = '';
-                svgFilenames.forEach((name, idx) => {
-                    html += `<span class="file-tag">📄 ${name} <span class="remove" data-idx="${idx}">✕</span></span>`;
-                });
-                fileList.innerHTML = html;
-                fileCountSpan.textContent = svgFilenames.length;
-                clearBtn.disabled = false;
-                processBtn.disabled = false;
-                setStatus(`✅ ${svgFilenames.length} টি SVG পাওয়া গেছে`, 'প্রস্তুত', true);
+  <footer class="text-center text-xs text-gray-500 mt-8 py-4 border-t border-white/5">
+    Mobile Friendly ZIP Repair & Image Extraction System
+  </footer>
 
-                // প্রতিটি ফাইলের "✕" এ ক্লিক করলে সেটি বাদ দিতে (শুধু UI থেকে, কিন্তু জিপ থেকে রিমুভ না)
-                // বাস্তবে জিপ থেকে রিমুভ করা জটিল, তাই শুধু UI তে দেখাবো না, কিন্তু প্রক্রিয়ায় আবার সবাই আসবে।
-                // আমরা "সাফ" বাটনে পুরো রিসেট করবো।
-                document.querySelectorAll('.file-tag .remove').forEach(el => {
-                    el.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const idx = parseInt(this.dataset.idx);
-                        if (!isNaN(idx) && svgFilenames.length > idx) {
-                            svgFilenames.splice(idx, 1);
-                            renderFileList(); // রি-রেন্ডার
-                        }
-                    });
-                });
-            }
+  <script>
+    let extractedFiles = [];
 
-            // জিপ পার্স ও SVG নাম বের করা
-            async function parseZipAndExtractSVGNames(zipFile) {
-                try {
-                    const arrayBuffer = await zipFile.arrayBuffer();
-                    const zip = await JSZip.loadAsync(arrayBuffer);
-                    const svgFiles = [];
-                    zip.forEach((relativePath, zipEntry) => {
-                        if (!zipEntry.dir && relativePath.toLowerCase().endsWith('.svg')) {
-                            svgFiles.push(relativePath);
-                        }
-                    });
-                    return { zip, svgFiles };
-                } catch (error) {
-                    console.error('জিপ পার্স করতে সমস্যা:', error);
-                    return null;
-                }
-            }
+    async function processZipFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
-            // জিপ ফাইল হ্যান্ডেল
-            async function handleZipFile(file) {
-                resetFileUI();
-                if (!file || file.type !== 'application/zip' && !file.name.toLowerCase().endsWith('.zip')) {
-                    setStatus('❌ শুধু .zip ফাইল সাপোর্টেড', 'ত্রুটি', false);
-                    return;
-                }
-                currentZipFile = file;
-                const result = await parseZipAndExtractSVGNames(file);
-                if (!result) {
-                    setStatus('❌ জিপ পড়া সম্ভব হয়নি', 'ত্রুটি', false);
-                    currentZipFile = null;
-                    return;
-                }
-                const { svgFiles } = result;
-                svgFilenames = svgFiles;
-                renderFileList();
-                if (svgFilenames.length === 0) {
-                    setStatus('⚠️ জিপে কোনো .svg ফাইল নেই', 'সতর্কতা', false);
-                } else {
-                    setStatus(`✅ ${svgFilenames.length} টি SVG পাওয়া গেছে`, 'প্রস্তুত', true);
-                }
-            }
+      const statusBox = document.getElementById("statusBox");
+      const statusText = document.getElementById("statusText");
+      const downloadAction = document.getElementById("downloadAction");
+      const previewArea = document.getElementById("previewArea");
+      const imageGrid = document.getElementById("imageGrid");
+      const totalCount = document.getElementById("totalCount");
 
-            // ---------- মূল প্রসেস: কালার রিপ্লেস করে নতুন জিপ ----------
-            async function processAndDownload() {
-                if (!currentZipFile) {
-                    setStatus('❌ আগে একটি জিপ আপলোড করুন', 'ত্রুটি', false);
-                    return;
-                }
-                if (svgFilenames.length === 0) {
-                    setStatus('❌ কোন SVG ফাইল নেই', 'ত্রুটি', false);
-                    return;
-                }
+      statusBox.classList.remove("hidden");
+      downloadAction.classList.add("hidden");
+      previewArea.classList.add("hidden");
+      imageGrid.innerHTML = "";
+      extractedFiles = [];
 
-                // বাটন ডিজেবল ও স্পিনার
-                processBtn.disabled = true;
-                processBtn.innerHTML = `<span class="spinner"></span> প্রক্রিয়াকরণ...`;
-                setStatus('⏳ SVG প্রসেস করা হচ্ছে ...', 'রূপান্তর', true);
+      statusText.innerText = "ফাইল স্ক্যান ও রিকভার করা হচ্ছে...";
 
-                try {
-                    const arrayBuffer = await currentZipFile.arrayBuffer();
-                    const zip = await JSZip.loadAsync(arrayBuffer);
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const zip = await JSZip.loadAsync(arrayBuffer);
 
-                    // নতুন জিপ অবজেক্ট
-                    const newZip = new JSZip();
+        let filesInZip = Object.keys(zip.files);
+        let count = 0;
 
-                    // প্রতিটি SVG ফাইলের জন্য
-                    const svgEntries = [];
-                    zip.forEach((relativePath, zipEntry) => {
-                        if (!zipEntry.dir && relativePath.toLowerCase().endsWith('.svg')) {
-                            svgEntries.push({ path: relativePath, entry: zipEntry });
-                        } else {
-                            // অন্যান্য ফাইল কপি (যেমন folder structure)
-                            if (!zipEntry.dir) {
-                                newZip.file(relativePath, zipEntry._data?.blob || zipEntry._data?.nodeBuffer || zipEntry._data, { binary: true });
-                            } else {
-                                newZip.folder(relativePath);
-                            }
-                        }
-                    });
+        for (let fileName of filesInZip) {
+          let zipEntry = zip.files[fileName];
+          if (zipEntry.dir) continue;
 
-                    // প্রতিটি SVG প্রসেস
-                    for (const { path, entry } of svgEntries) {
-                        let content;
-                        try {
-                            content = await entry.async('string');
-                        } catch (e) {
-                            console.warn('পড়া সম্ভব হয়নি:', path, e);
-                            // ফাইলটি বাদ না দিয়ে কপি করি
-                            const blob = await entry.async('blob');
-                            newZip.file(path, blob);
-                            continue;
-                        }
+          // Read Content
+          let blob = await zipEntry.async("blob");
+          let ext = fileName.split('.').pop().toLowerCase();
+          
+          if (!['svg', 'png', 'jpg', 'jpeg', 'json'].includes(ext)) {
+             ext = 'png'; // default fallback
+          }
 
-                        // ১. #48494B → #000000 (কালো) , কেস ইনসেন্সিটিভ
-                        let newContent = content.replace(/#48494B/gi, '#000000');
-                        // ২. #E3E5E4 → #d4ff00 (কেস ইনসেন্সিটিভ)
-                        newContent = newContent.replace(/#E3E5E4/gi, '#d4ff00');
+          count++;
+          let newName = `${count}.${ext}`;
 
-                        // নতুন SVG ফাইল যোগ
-                        newZip.file(path, newContent);
-                    }
+          let objectUrl = URL.createObjectURL(blob);
 
-                    // জিপ তৈরি
-                    const zipBlob = await newZip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-                    processedBlob = zipBlob;
+          extractedFiles.push({
+            name: newName,
+            blob: blob,
+            url: objectUrl,
+            ext: ext
+          });
+        }
 
-                    // ডাউনলোড
-                    const downloadName = currentZipFile.name.replace(/\.zip$/i, '') + '_color_changed.zip';
-                    saveAs(zipBlob, downloadName);
+        if (extractedFiles.length === 0) {
+          statusText.innerText = "কোনো ছবি বা ফাইল পাওয়া যায়নি! অনুগ্রহ করে সঠিক ফাইল দিন।";
+          return;
+        }
 
-                    setStatus(`✅ ডাউনলোড শুরু! ${svgFilenames.length} টি SVG পরিবর্তিত`, 'সম্পন্ন', true);
-                } catch (error) {
-                    console.error('প্রক্রিয়াকরণে ত্রুটি:', error);
-                    setStatus(`❌ ত্রুটি: ${error.message || 'অজানা'}`, 'ব্যর্থ', false);
-                } finally {
-                    processBtn.innerHTML = `⚡ প্রসেস & ডাউনলোড`;
-                    processBtn.disabled = (svgFilenames.length === 0 || !currentZipFile);
-                }
-            }
+        // Render Preview
+        extractedFiles.forEach(item => {
+          let div = document.createElement("div");
+          div.className = "glass-card p-2 rounded-2xl border border-white/5 flex flex-col items-center justify-center";
+          
+          if (item.ext === 'json') {
+             div.innerHTML = `
+              <div class="w-full aspect-square bg-black/50 rounded-xl flex items-center justify-center text-pink-500 font-mono text-xs">
+                 <i class="fa-solid fa-file-code text-2xl"></i>
+              </div>
+              <span class="text-[10px] text-gray-400 font-mono mt-2">${item.name}</span>
+             `;
+          } else {
+             div.innerHTML = `
+              <div class="w-full aspect-square rounded-xl overflow-hidden bg-black/60 flex items-center justify-center">
+                <img src="${item.url}" class="w-full h-full object-contain" />
+              </div>
+              <span class="text-[10px] text-gray-400 font-mono mt-2">${item.name}</span>
+             `;
+          }
+          imageGrid.appendChild(div);
+        });
 
-            // ---------- ইভেন্ট লিসেনার ----------
-            // আপলোড এলাকায় ক্লিক
-            uploadArea.addEventListener('click', () => fileInput.click());
+        totalCount.innerText = extractedFiles.length;
+        statusText.innerText = `সফলভাবে ${extractedFiles.length} টি ফাইল পাওয়া গেছে!`;
+        downloadAction.classList.remove("hidden");
+        previewArea.classList.remove("hidden");
 
-            // ফাইল ইনপুট পরিবর্তন
-            fileInput.addEventListener('change', async (e) => {
-                if (e.target.files.length > 0) {
-                    const file = e.target.files[0];
-                    await handleZipFile(file);
-                }
-                fileInput.value = ''; // রিসেট
-            });
+      } catch (err) {
+        console.error(err);
+        statusText.innerText = "ফাইলটি রিড করতে সমস্যা হয়েছে! নিশ্চিত করুন এটি সঠিক ফাইল।";
+      }
+    }
 
-            // ড্র্যাগ ও ড্রপ
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.style.background = '#dde9f5';
-                uploadArea.style.borderColor = '#5f8aa5';
-            });
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.style.background = '#f0f6fd';
-                uploadArea.style.borderColor = '#b8cfde';
-            });
-            uploadArea.addEventListener('drop', async (e) => {
-                e.preventDefault();
-                uploadArea.style.background = '#f0f6fd';
-                uploadArea.style.borderColor = '#b8cfde';
-                const files = e.dataTransfer.files;
-                if (files.length > 0 && files[0].name.toLowerCase().endsWith('.zip')) {
-                    await handleZipFile(files[0]);
-                } else {
-                    setStatus('❌ শুধু .zip ফাইল ড্রপ করুন', 'ত্রুটি', false);
-                }
-            });
+    async function downloadCleanZip() {
+      const statusText = document.getElementById("statusText");
+      statusText.innerText = "মোবাইলের উপযোগী ১০০% ক্লিন জিপ ফাইল তৈরি হচ্ছে...";
 
-            // ক্লিয়ার বাটন
-            clearBtn.addEventListener('click', () => {
-                resetFileUI();
-                fileInput.value = '';
-                setStatus('🗑️ সবকিছু সাফ করা হয়েছে', 'প্রস্তুত', true);
-            });
+      const newZip = new JSZip();
 
-            // প্রসেস বাটন
-            processBtn.addEventListener('click', processAndDownload);
+      extractedFiles.forEach(file => {
+        newZip.file(file.name, file.blob);
+      });
 
-            // রিসেট
-            resetFileUI();
+      // Pure ZIP binary generator with explicit MIME Type for Mobile Compatibility
+      const cleanBlob = await newZip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        mimeType: "application/zip"
+      });
 
-            // অতিরিক্ত: window এ saveAs আছে (FileSaver)
-            if (typeof window.saveAs === 'undefined') {
-                console.warn('FileSaver পাওয়া যায়নি');
-            }
-        })();
-    </script>
+      saveAs(cleanBlob, "NORMIES_Fixed_Images.zip");
+      statusText.innerText = "জিপ ফাইল জেনারেট সম্পূর্ণ ও ডাউনলোড শুরু হয়েছে!";
+    }
+  </script>
 </body>
 </html>
