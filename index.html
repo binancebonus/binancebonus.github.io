@@ -272,6 +272,135 @@
       }
     }
 
+    // ----- FIXED: RELIABLE IMAGE BLOB EXTRACTOR (SVG + standard formats) -----
+    async function fetchImageBlob(imgUrl) {
+      if (!imgUrl) return null;
+
+      try {
+        // 1) Inline SVG (utf8)
+        if (imgUrl.startsWith('data:image/svg+xml;utf8,')) {
+          let svgContent = decodeURIComponent(imgUrl.replace('data:image/svg+xml;utf8,', ''));
+          let blob = new Blob([svgContent], { type: 'image/svg+xml' });
+          return { blob, ext: 'svg' };
+        }
+        // 2) Inline SVG (base64)
+        if (imgUrl.startsWith('data:image/svg+xml;base64,')) {
+          let svgContent = atob(imgUrl.replace('data:image/svg+xml;base64,', ''));
+          let blob = new Blob([svgContent], { type: 'image/svg+xml' });
+          return { blob, ext: 'svg' };
+        }
+        // 3) raw SVG string
+        if (imgUrl.trim().startsWith('<svg')) {
+          let blob = new Blob([imgUrl], { type: 'image/svg+xml' });
+          return { blob, ext: 'svg' };
+        }
+        // 4) data:image/* (other)
+        if (imgUrl.startsWith('data:')) {
+          let res = await fetch(imgUrl);
+          let blob = await res.blob();
+          let ext = blob.type.includes('svg') ? 'svg' : (blob.type.includes('jpeg') ? 'jpg' : 'png');
+          return { blob, ext };
+        }
+        // 5) http(s) remote
+        const res = await fetch(imgUrl, { mode: 'cors' });
+        if (!res.ok) return null;
+        let blob = await res.blob();
+        let ext = blob.type.includes('svg') ? 'svg' : (blob.type.includes('jpeg') ? 'jpg' : 'png');
+        return { blob, ext };
+      } catch (e) {
+        console.warn('fetchImageBlob error for:', imgUrl, e);
+        return null;
+      }
+    }
+
+    // ----- IMPROVED: SEQUENTIAL ZIP GENERATION (fast & reliable) -----
+    async function generateSequentialZip(items, type, statusText, progressBar) {
+      const zip = new JSZip();
+      const total = items.length;
+
+      for (let i = 0; i < total; i++) {
+        const nft = items[i];
+        const serialNum = i + 1; // 1,2,3,...
+
+        if (type === 'image') {
+          const imgData = await fetchImageBlob(nft.image);
+          if (imgData && imgData.blob) {
+            zip.file(`${serialNum}.${imgData.ext}`, imgData.blob);
+          } else {
+            // fallback placeholder if image fails
+            const fallback = new Blob([`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="#111827"/><text x="50%" y="50%" font-family="monospace" font-size="24" fill="#EF4444" text-anchor="middle" dominant-baseline="central">NORMIES #${nft.tokenId}</text></svg>`], { type: 'image/svg+xml' });
+            zip.file(`${serialNum}.svg`, fallback);
+          }
+        } else { // metadata
+          zip.file(`${serialNum}.json`, JSON.stringify(nft.rawMetadata, null, 2));
+        }
+
+        // update progress every 5 items or at end
+        if (i % 5 === 0 || i === total - 1) {
+          const pct = Math.floor(((i + 1) / total) * 100);
+          statusText.innerText = `ZIP: ${serialNum}/${total} ...`;
+          progressBar.style.width = pct + '%';
+          await new Promise(r => setTimeout(r, 0)); // yield to UI
+        }
+      }
+
+      const blob = await zip.generateAsync({ 
+        type: "blob", 
+        compression: "DEFLATE",
+        mimeType: "application/zip"
+      });
+      return blob;
+    }
+
+    // ----- DOWNLOAD IMAGES ZIP (fixed) -----
+    async function downloadImagesZip() {
+      if (burnedNFTs.length === 0) return;
+
+      const statusBox = document.getElementById("statusBox");
+      const statusText = document.getElementById("statusText");
+      const progressBar = document.getElementById("progressBar");
+
+      statusBox.classList.remove("hidden");
+      statusText.innerText = "Preparing image ZIP...";
+      progressBar.style.width = "0%";
+
+      try {
+        const blob = await generateSequentialZip(burnedNFTs, 'image', statusText, progressBar);
+        saveAs(blob, `NORMIES_Burned_Images_Sequenced.zip`);
+        statusText.innerText = "✅ Images ZIP downloaded!";
+        progressBar.style.width = "100%";
+        setTimeout(() => { statusBox.classList.add("hidden"); }, 3000);
+      } catch (err) {
+        console.error("ZIP Error:", err);
+        statusText.innerText = "❌ ZIP error: " + err.message;
+      }
+    }
+
+    // ----- DOWNLOAD METADATA ZIP (fixed) -----
+    async function downloadMetadataZip() {
+      if (burnedNFTs.length === 0) return;
+
+      const statusBox = document.getElementById("statusBox");
+      const statusText = document.getElementById("statusText");
+      const progressBar = document.getElementById("progressBar");
+
+      statusBox.classList.remove("hidden");
+      statusText.innerText = "Preparing metadata ZIP...";
+      progressBar.style.width = "0%";
+
+      try {
+        const blob = await generateSequentialZip(burnedNFTs, 'metadata', statusText, progressBar);
+        saveAs(blob, `NORMIES_Burned_Metadata_Sequenced.zip`);
+        statusText.innerText = "✅ Metadata ZIP downloaded!";
+        progressBar.style.width = "100%";
+        setTimeout(() => { statusBox.classList.add("hidden"); }, 3000);
+      } catch (err) {
+        console.error("ZIP Error:", err);
+        statusText.innerText = "❌ ZIP error: " + err.message;
+      }
+    }
+
+    // ----- MAIN SCAN (unchanged logic, but uses fixed fetchImageBlob) -----
     async function startScan() {
       if (isFetching) return;
 
@@ -456,7 +585,7 @@
                alt="${nft.name}"
                loading="lazy"
                class="w-full h-full object-contain"
-               onerror="this.onerror=null; this.src='https://via.placeholder.com/400x400/111827/EF4444?text=NORMIES+${nft.tokenId}';" />
+               onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23111827%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-family=%22monospace%22 font-size=%2224%22 fill=%22%23EF4444%22 text-anchor=%22middle%22 dominant-baseline=%22central%22%3ENORMIES #${nft.tokenId}%3C/text%3E%3C/svg%3E';" />
           <div class="absolute top-2 left-2 bg-red-600/90 text-white font-mono font-bold text-[10px] px-2 py-0.5 rounded-md shadow-md">
             BURNED
           </div>
@@ -480,139 +609,6 @@
 
       jsonBtn.disabled = false;
       jsonBtn.className = "text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl bg-pink-600 text-white hover:bg-pink-500 cursor-pointer transition flex items-center gap-2 shadow-lg shadow-pink-500/20";
-    }
-
-    // High Reliability Image Extractor for On-Chain SVG & Cross-Origin Images
-    async function fetchImageBlob(imgUrl) {
-      if (!imgUrl) return null;
-
-      try {
-        if (imgUrl.startsWith('data:image/svg+xml;utf8,')) {
-          let svgContent = decodeURIComponent(imgUrl.replace('data:image/svg+xml;utf8,', ''));
-          let blob = new Blob([svgContent], { type: 'image/svg+xml' });
-          return { blob, ext: 'svg' };
-        } else if (imgUrl.startsWith('data:image/svg+xml;base64,')) {
-          let svgContent = atob(imgUrl.replace('data:image/svg+xml;base64,', ''));
-          let blob = new Blob([svgContent], { type: 'image/svg+xml' });
-          return { blob, ext: 'svg' };
-        } else if (imgUrl.startsWith('data:')) {
-          let res = await fetch(imgUrl);
-          let blob = await res.blob();
-          let ext = imgUrl.includes('image/svg') ? 'svg' : (imgUrl.includes('image/jpeg') ? 'jpg' : 'png');
-          return { blob, ext };
-        } else if (imgUrl.trim().startsWith('<svg')) {
-          let blob = new Blob([imgUrl], { type: 'image/svg+xml' });
-          return { blob, ext: 'svg' };
-        } else {
-          let res = await fetch(imgUrl);
-          if (!res.ok) return null;
-          let blob = await res.blob();
-          let ext = blob.type.includes('svg') ? 'svg' : (blob.type.includes('jpeg') ? 'jpg' : 'png');
-          return { blob, ext };
-        }
-      } catch (e) {
-        console.error("Image fetch failed:", e);
-        return null;
-      }
-    }
-
-    async function downloadImagesZip() {
-      const zip = new JSZip();
-      const statusBox = document.getElementById("statusBox");
-      const statusText = document.getElementById("statusText");
-      const progressBar = document.getElementById("progressBar");
-
-      statusBox.classList.remove("hidden");
-      statusText.innerText = "Preparing and converting images for Mobile ZIP...";
-      progressBar.style.width = "0%";
-
-      try {
-        let addedCount = 0;
-        for (let i = 0; i < burnedNFTs.length; i++) {
-          let nft = burnedNFTs[i];
-          let serialNum = i + 1; // Sequenced: 1, 2, 3...
-
-          let imgData = await fetchImageBlob(nft.image);
-          if (imgData && imgData.blob) {
-            zip.file(`${serialNum}.${imgData.ext}`, imgData.blob);
-            addedCount++;
-          }
-
-          if (i % 2 === 0 || i === burnedNFTs.length - 1) {
-            statusText.innerText = `Adding Image ${serialNum} of ${burnedNFTs.length}...`;
-            progressBar.style.width = Math.floor((serialNum / burnedNFTs.length) * 70) + "%";
-            await new Promise(r => setTimeout(r, 10));
-          }
-        }
-
-        if (addedCount === 0) {
-          alert("কোনো ছবি সঠিক বাইনারি ফর্মে পাওয়া যায়নি।");
-          return;
-        }
-
-        statusText.innerText = "Compressing ZIP File...";
-        
-        // DEFLATE Compression & MIME Fix for Mobile
-        const content = await zip.generateAsync({ 
-          type: "blob", 
-          compression: "DEFLATE",
-          mimeType: "application/zip" 
-        }, function(metadata) {
-          let progress = 70 + (metadata.percent * 0.3);
-          progressBar.style.width = progress + "%";
-        });
-
-        saveAs(content, `NORMIES_Burned_Images_Sequenced.zip`);
-        statusText.innerText = "Images ZIP Downloaded Successfully!";
-        progressBar.style.width = "100%";
-      } catch (err) {
-        console.error("ZIP Error:", err);
-        statusText.innerText = "ZIP Generation Error: " + err.message;
-      }
-    }
-
-    async function downloadMetadataZip() {
-      const zip = new JSZip();
-      const statusBox = document.getElementById("statusBox");
-      const statusText = document.getElementById("statusText");
-      const progressBar = document.getElementById("progressBar");
-
-      statusBox.classList.remove("hidden");
-      statusText.innerText = "Generating Sequenced Metadata JSONs...";
-      progressBar.style.width = "0%";
-
-      try {
-        for (let i = 0; i < burnedNFTs.length; i++) {
-          let nft = burnedNFTs[i];
-          let serialNum = i + 1; // Sequenced: 1, 2, 3...
-
-          zip.file(`${serialNum}.json`, JSON.stringify(nft.rawMetadata, null, 2));
-
-          if (i % 20 === 0 || i === burnedNFTs.length - 1) {
-            statusText.innerText = `Packing JSON ${serialNum} of ${burnedNFTs.length}...`;
-            progressBar.style.width = Math.floor((serialNum / burnedNFTs.length) * 70) + "%";
-            await new Promise(r => setTimeout(r, 5));
-          }
-        }
-
-        statusText.innerText = "Compressing Metadata ZIP...";
-        
-        const content = await zip.generateAsync({ 
-          type: "blob",
-          compression: "DEFLATE",
-          mimeType: "application/zip"
-        }, function(metadata) {
-          let progress = 70 + (metadata.percent * 0.3);
-          progressBar.style.width = progress + "%";
-        });
-
-        saveAs(content, `NORMIES_Burned_Metadata_Sequenced.zip`);
-        statusText.innerText = "Metadata ZIP Downloaded Successfully!";
-        progressBar.style.width = "100%";
-      } catch(err) {
-        console.error("JSON ZIP Error:", err);
-        statusText.innerText = "JSON ZIP Error: " + err.message;
-      }
     }
   </script>
 </body>
