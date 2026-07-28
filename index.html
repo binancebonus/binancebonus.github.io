@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Robinhood NFT Real Buyers & Holders Analytics</title>
+  <title>Robinhood NFT Analytics</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,30 +20,27 @@
       background: #161b22;
       border: 1px solid #30363d;
       border-radius: 12px;
-      max-width: 680px;
+      max-width: 650px;
       width: 100%;
       padding: 30px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }
-    h1 { color: #58a6ff; font-size: 24px; margin-bottom: 10px; text-align: center; }
-    p.subtitle { text-align: center; color: #8b949e; margin-bottom: 25px; font-size: 14px; }
+    h1 { color: #58a6ff; font-size: 22px; margin-bottom: 8px; text-align: center; }
+    p.subtitle { text-align: center; color: #8b949e; margin-bottom: 20px; font-size: 13px; }
     
     .info-box {
       background: #21262d;
       border-left: 4px solid #238636;
-      padding: 12px 15px;
-      margin-bottom: 25px;
+      padding: 12px;
+      margin-bottom: 20px;
       border-radius: 4px;
       font-size: 13px;
       word-break: break-all;
     }
     .info-box span { color: #7ee787; font-weight: bold; }
 
-    .status-container {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    #status { font-weight: bold; color: #d29922; margin-top: 5px; }
+    .status-container { margin-bottom: 20px; text-align: center; }
+    #status { font-weight: bold; color: #d29922; margin-top: 5px; font-size: 14px; }
     .progress-bar {
       width: 100%;
       background-color: #21262d;
@@ -52,15 +49,15 @@
       margin-top: 10px;
       display: none;
     }
-    .progress { height: 10px; width: 0%; background-color: #238636; transition: width 0.3s; }
+    .progress { height: 8px; width: 0%; background-color: #238636; transition: width 0.3s; }
 
     .btn {
       width: 100%;
       padding: 12px;
-      margin: 8px 0;
+      margin: 6px 0;
       border: none;
       border-radius: 6px;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: 0.2s;
@@ -79,14 +76,14 @@
 
 <div class="card">
   <h1>Robinhood NFT Sales & Holder Analytics</h1>
-  <p class="subtitle">রিয়েল-টাইম অন-চেইন সেলস (Sales) ও হোল্ডার এক্সপোর্টার</p>
+  <p class="subtitle">অন-চেইন রিয়েল-টাইম ডেটা এক্সপোর্টার</p>
 
   <div class="info-box">
     <strong>নেটওয়ার্ক:</strong> <span>Robinhood Mainnet</span><br>
-    <strong>কন্টাক্ট এড্রেস:</strong> <span id="contract">0x68e5a6aaf2503940f0337243063ab8f4da6bedec</span>
+    <strong>কন্টাক্ট এড্রেস:</strong> <span>0x68e5a6aaf2503940f0337243063ab8f4da6bedec</span>
   </div>
 
-  <button id="fetchBtn" class="btn btn-fetch" onclick="startProcess()">১. ব্লকচেইন থেকে রিয়েল সেলস ও হোল্ডার ডেটা ফেচ করুন</button>
+  <button id="fetchBtn" class="btn btn-fetch" onclick="startProcess()">১. ব্লকচেইন থেকে রিয়েল ডেটা ফেচ করুন</button>
 
   <div class="status-container">
     <div id="status">স্ট্যাটাস: ফেচ করতে উপরের বাটনে ক্লিক করুন</div>
@@ -95,11 +92,10 @@
     </div>
   </div>
 
-  <hr style="border: 0.5px solid #30363d; margin: 20px 0;">
+  <hr style="border: 0.5px solid #30363d; margin: 15px 0;">
 
-  <!-- ডাউনলোড বাটনসমূহ -->
   <button id="btnCsv1" class="btn btn-download" onclick="downloadCSV(1)">
-    🛒 ১. রিয়েল ক্রেতাদের তালিকা (যারা অন্তত ১টি কিনেছেন + মোট কেনা সংখ্যা)
+    🛒 ১. রিয়েল ক্রেতাদের তালিকা (অন্তত ১টি কিনেছেন + মোট কেনা সংখ্যা)
   </button>
   <button id="btnCsv2" class="btn btn-download" onclick="downloadCSV(2)">
     🏆 ২. বর্তমান টপ ৫০০ হোল্ডার (CSV)
@@ -108,15 +104,23 @@
     📋 ৩. বর্তমান সকল হোল্ডার লিস্ট (CSV)
   </button>
 
-  <div class="footer">Powered by Alchemy NFT Sales & Owners API</div>
+  <div class="footer">Powered by Robinhood Direct On-Chain RPC</div>
 </div>
 
 <script>
-  const API_KEY_URL = "https://robinhood-mainnet.g.alchemy.com/v2/FXZjUazW6nIgeW8SRwCDZ";
+  const RPC_URL = "https://robinhood-mainnet.g.alchemy.com/v2/FXZjUazW6nIgeW8SRwCDZ";
   const CONTRACT_ADDRESS = "0x68e5a6aaf2503940f0337243063ab8f4da6bedec";
+  
+  // ERC-721 / ERC-1155 Transfer Event Signature Topic
+  const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
-  let realBuyersMap = {}; // { buyerAddress: totalBoughtCount }
-  let currentHolders = []; // [{ address, balance }]
+  let realBuyersMap = {};   // { buyerAddress: buyCount }
+  let currentHoldersMap = {}; // { address: currentBalance }
+
+  function cleanAddress(topic) {
+    if (!topic) return "";
+    return "0x" + topic.substring(26).toLowerCase();
+  }
 
   async function startProcess() {
     const fetchBtn = document.getElementById("fetchBtn");
@@ -126,146 +130,82 @@
 
     fetchBtn.disabled = true;
     progressBarContainer.style.display = "block";
+    status.innerText = "ব্লকচেইন থেকে ইভেন্ট ল্যাব (Logs) স্ক্যান করা হচ্ছে...";
+    status.style.color = "#d29922";
+    progressBar.style.width = "30%";
+
+    realBuyersMap = {};
+    currentHoldersMap = {};
 
     try {
-      // -------------------------------------------------------------
-      // Step 1: Fetch Real NFT Sales Data via Alchemy NFT Sales API
-      // -------------------------------------------------------------
-      status.innerText = "ধাপ ১/২: মার্কেটপ্লেসের রিয়েল সেলস (Sales) ডেটা আনা হচ্ছে...";
-      status.style.color = "#d29922";
-      progressBar.style.width = "25%";
+      const payload = {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "eth_getLogs",
+        params: [{
+          fromBlock: "0x0",
+          toBlock: "latest",
+          address: CONTRACT_ADDRESS,
+          topics: [TRANSFER_TOPIC]
+        }]
+      };
 
-      realBuyersMap = {};
-      let pageKey = null;
-      let totalSalesFound = 0;
-
-      do {
-        let salesUrl = `${API_KEY_URL}/getNFTSales?contractAddress=${CONTRACT_ADDRESS}`;
-        if (pageKey) salesUrl += `&pageKey=${pageKey}`;
-
-        const res = await fetch(salesUrl);
-        const data = await res.json();
-
-        if (data.nftSales && data.nftSales.length > 0) {
-          data.nftSales.forEach(sale => {
-            // Buyer Address (To Address)
-            const buyerAddress = sale.buyerAddress || sale.toAddress;
-            const sellerAddress = sale.sellerAddress || sale.fromAddress;
-
-            // Zero address / Mint exclusion check
-            if (
-              buyerAddress && 
-              buyerAddress.toLowerCase() !== "0x0000000000000000000000000000000000000000" &&
-              sellerAddress &&
-              sellerAddress.toLowerCase() !== "0x0000000000000000000000000000000000000000"
-            ) {
-              const quantity = parseInt(sale.quantity || sale.tokensSold || 1, 10);
-              realBuyersMap[buyerAddress] = (realBuyersMap[buyerAddress] || 0) + quantity;
-              totalSalesFound++;
-            }
-          });
-          pageKey = data.pageKey;
-        } else {
-          // If getNFTSales is empty or pending, fallback to Transfers filtered for non-zero & sale signatures
-          pageKey = null;
-        }
-
-        progressBar.style.width = pageKey ? "50%" : "60%";
-      } while (pageKey);
-
-      // Fallback Strategy: If NFT Sales API hasn't indexed secondary market yet, use transfer log filters
-      if (totalSalesFound === 0) {
-        status.innerText = "সেলস এপিআই ব্যাকআপ প্রসেস হচ্ছে (Secondary Transfers)...";
-        let transferPageKey = null;
-
-        do {
-          const requestBody = {
-            id: 1,
-            jsonrpc: "2.0",
-            method: "alchemy_getAssetTransfers",
-            params: [{
-              fromBlock: "0x0",
-              toBlock: "latest",
-              contractAddresses: [CONTRACT_ADDRESS],
-              category: ["erc721", "erc1155"],
-              withMetadata: false,
-              excludeZeroValue: true,
-              pageKey: transferPageKey || undefined
-            }]
-          };
-
-          const res = await fetch(API_KEY_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-          });
-
-          const data = await res.json();
-
-          if (data.result && data.result.transfers) {
-            data.result.transfers.forEach(tx => {
-              const fromAddr = tx.from ? tx.from.toLowerCase() : "";
-              const toAddr = tx.to ? tx.to.toLowerCase() : "";
-              const zeroAddr = "0x0000000000000000000000000000000000000000";
-
-              // Only transfers that are NOT Mints (from != 0x0) and NOT Burns (to != 0x0)
-              if (fromAddr && toAddr && fromAddr !== zeroAddr && toAddr !== zeroAddr) {
-                const qty = tx.erc1155Metadata ? parseInt(tx.erc1155Metadata[0].value, 16) : 1;
-                realBuyersMap[tx.to] = (realBuyersMap[tx.to] || 0) + qty;
-              }
-            });
-            transferPageKey = data.result.pageKey;
-          } else {
-            transferPageKey = null;
-          }
-        } while (transferPageKey);
-      }
-
-      // -------------------------------------------------------------
-      // Step 2: Fetch Current Holders via Collection Owners API
-      // -------------------------------------------------------------
-      status.innerText = "ধাপ ২/২: বর্তমান হোল্ডারদের ডেটা আনা হচ্ছে...";
-      let holderPageKey = null;
-      let rawOwners = [];
-
-      do {
-        let url = `${API_KEY_URL}/getOwnersForCollection?contractAddress=${CONTRACT_ADDRESS}&withTokenBalances=true`;
-        if (holderPageKey) url += `&pageKey=${holderPageKey}`;
-
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if (data.ownerAddresses) {
-          rawOwners = rawOwners.concat(data.ownerAddresses);
-        }
-        holderPageKey = data.pageKey;
-      } while (holderPageKey);
-
-      currentHolders = rawOwners.map(item => {
-        let count = 0;
-        if (item.tokenBalances && item.tokenBalances.length > 0) {
-          count = item.tokenBalances.reduce((acc, curr) => acc + parseInt(curr.balance || 1, 10), 0);
-        } else {
-          count = 1;
-        }
-        return { address: item.ownerAddress, balance: count };
+      const response = await fetch(RPC_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
 
-      currentHolders.sort((a, b) => b.balance - a.balance);
+      const resData = await response.json();
+
+      if (resData.error) {
+        throw new Error(resData.error.message || "RPC Error");
+      }
+
+      const logs = resData.result || [];
+      progressBar.style.width = "70%";
+      status.innerText = `মোট ${logs.length} টি অন-চেইন ট্রান্সফার পাওয়া গেছে। হিসাব করা হচ্ছে...`;
+
+      const zeroAddr = "0x0000000000000000000000000000000000000000";
+
+      logs.forEach(log => {
+        if (log.topics && log.topics.length >= 3) {
+          const fromAddr = cleanAddress(log.topics[1]);
+          const toAddr = cleanAddress(log.topics[2]);
+
+          // 1. Current Balance Calculation (+1 to Receiver, -1 to Sender)
+          if (toAddr && toAddr !== zeroAddr) {
+            currentHoldersMap[toAddr] = (currentHoldersMap[toAddr] || 0) + 1;
+          }
+          if (fromAddr && fromAddr !== zeroAddr) {
+            currentHoldersMap[fromAddr] = (currentHoldersMap[fromAddr] || 0) - 1;
+          }
+
+          // 2. Real Buyer Calculation
+          // If fromAddr is NOT 0x0 (not minting), then 'toAddr' bought/received from someone
+          if (fromAddr && fromAddr !== zeroAddr && toAddr && toAddr !== zeroAddr) {
+            realBuyersMap[toAddr] = (realBuyersMap[toAddr] || 0) + 1;
+          }
+        }
+      });
 
       progressBar.style.width = "100%";
       const uniqueBuyersCount = Object.keys(realBuyersMap).length;
-      status.innerText = `সফল! রিয়েল ক্রেতা: ${uniqueBuyersCount} জন | বর্তমান হোল্ডার: ${currentHolders.length} জন`;
+      
+      // Filter out holders with balance > 0
+      const activeHolders = Object.keys(currentHoldersMap)
+        .filter(addr => currentHoldersMap[addr] > 0);
+
+      status.innerText = `সফল! রিয়েল ক্রেতা: ${uniqueBuyersCount} জন | বর্তমান হোল্ডার: ${activeHolders.length} জন`;
       status.style.color = "#3fb950";
 
-      // Show Download Buttons
       document.getElementById("btnCsv1").style.display = "block";
       document.getElementById("btnCsv2").style.display = "block";
       document.getElementById("btnCsv3").style.display = "block";
 
-    } catch (error) {
-      console.error(error);
-      status.innerText = "ভুল হয়েছে! API বা নেটওয়ার্ক কানেকশন চেক করুন।";
+    } catch (err) {
+      console.error(err);
+      status.innerText = "ভুল হয়েছে! RPC রিকোয়েস্ট ব্যর্থ হয়েছে।";
       status.style.color = "#f85149";
       fetchBtn.disabled = false;
     }
@@ -276,9 +216,8 @@
     let filename = "";
 
     if (type === 1) {
-      // 1. Real Buyers List (Only Bought via Marketplace/Sale, from != 0x0)
+      // 1. Real Buyers List
       csvContent += "Buyer Wallet Address (To Address),Total Times Bought\n";
-      
       const sortedBuyers = Object.keys(realBuyersMap)
         .map(addr => ({ address: addr, count: realBuyersMap[addr] }))
         .sort((a, b) => b.count - a.count);
@@ -289,24 +228,33 @@
       filename = "Real_NFT_Buyers_List.csv";
 
     } else if (type === 2) {
-      // 2. Top 500 Current Holders
-      const top500 = currentHolders.slice(0, 500);
+      // 2. Top 500 Holders
+      const holdersList = Object.keys(currentHoldersMap)
+        .map(addr => ({ address: addr, balance: currentHoldersMap[addr] }))
+        .filter(h => h.balance > 0)
+        .sort((a, b) => b.balance - a.balance)
+        .slice(0, 500);
+
       csvContent += "Rank,Wallet Address,Current NFT Balance\n";
-      top500.forEach((h, index) => {
+      holdersList.forEach((h, index) => {
         csvContent += `${index + 1},"${h.address}",${h.balance}\n`;
       });
       filename = "Top_500_Holders.csv";
 
     } else if (type === 3) {
       // 3. All Current Holders
+      const holdersList = Object.keys(currentHoldersMap)
+        .map(addr => ({ address: addr, balance: currentHoldersMap[addr] }))
+        .filter(h => h.balance > 0)
+        .sort((a, b) => b.balance - a.balance);
+
       csvContent += "Wallet Address,Current NFT Balance\n";
-      currentHolders.forEach(h => {
+      holdersList.forEach(h => {
         csvContent += `"${h.address}",${h.balance}\n`;
       });
       filename = "All_Current_Holders.csv";
     }
 
-    // Trigger Download
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
