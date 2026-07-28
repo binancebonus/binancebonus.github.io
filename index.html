@@ -1,269 +1,910 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Robinhood NFT Analytics</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #0d1117;
-      color: #c9d1d9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    .card {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      max-width: 650px;
-      width: 100%;
-      padding: 30px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-    }
-    h1 { color: #58a6ff; font-size: 22px; margin-bottom: 8px; text-align: center; }
-    p.subtitle { text-align: center; color: #8b949e; margin-bottom: 20px; font-size: 13px; }
-    
-    .info-box {
-      background: #21262d;
-      border-left: 4px solid #238636;
-      padding: 12px;
-      margin-bottom: 20px;
-      border-radius: 4px;
-      font-size: 13px;
-      word-break: break-all;
-    }
-    .info-box span { color: #7ee787; font-weight: bold; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NFT Galaxy — 10,000 Pixel Identities</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* ============================================================
+       DESIGN TOKENS
+       ============================================================ */
+    :root{
+        --bg:            #120E1A;
+        --bg-elev:       #1B1526;
+        --bg-elev-2:     #221A32;
+        --line:          rgba(255,255,255,0.08);
+        --line-strong:   rgba(255,255,255,0.16);
 
-    .status-container { margin-bottom: 20px; text-align: center; }
-    #status { font-weight: bold; color: #d29922; margin-top: 5px; font-size: 14px; }
-    .progress-bar {
-      width: 100%;
-      background-color: #21262d;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-top: 10px;
-      display: none;
+        --text:          #F5F3FA;
+        --text-muted:    #A79FC0;
+        --text-faint:    #6B6280;
+
+        --violet:        #8B5CF6;
+        --violet-soft:   rgba(139,92,246,0.16);
+        --cyan:          #22D3C5;
+        --cyan-soft:     rgba(34,211,197,0.16);
+        --gold:          #F5B942;
+        --pink:          #FF6FA5;
+
+        --font-display:  'Space Grotesk', sans-serif;
+        --font-body:     'Inter', sans-serif;
+        --font-pixel:    'Press Start 2P', monospace;
+
+        --radius-sm: 8px;
+        --radius-md: 16px;
+        --radius-lg: 24px;
     }
-    .progress { height: 8px; width: 0%; background-color: #238636; transition: width 0.3s; }
 
-    .btn {
-      width: 100%;
-      padding: 12px;
-      margin: 6px 0;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
+    *{ margin:0; padding:0; box-sizing:border-box; }
+
+    html{ scroll-behavior:smooth; }
+
+    body{
+        font-family:var(--font-body);
+        background:var(--bg);
+        color:var(--text);
+        min-height:100vh;
+        line-height:1.5;
+        -webkit-font-smoothing:antialiased;
     }
-    .btn-fetch { background: #238636; color: #fff; }
-    .btn-fetch:hover { background: #2ea043; }
-    .btn-fetch:disabled { background: #343942; cursor: not-allowed; color: #6e7681; }
 
-    .btn-download { background: #1f6beb; color: #fff; display: none; }
-    .btn-download:hover { background: #388bfd; }
+    /* subtle grain + glow backdrop */
+    body::before{
+        content:'';
+        position:fixed; inset:0;
+        background-image:
+            radial-gradient(circle at 15% -10%, rgba(139,92,246,0.18), transparent 45%),
+            radial-gradient(circle at 90% 10%, rgba(34,211,197,0.10), transparent 40%);
+        pointer-events:none;
+        z-index:0;
+    }
+    body::after{
+        content:'';
+        position:fixed; inset:0;
+        opacity:0.035;
+        pointer-events:none;
+        z-index:0;
+        background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
 
-    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #8b949e; }
-  </style>
+    a{ color:inherit; text-decoration:none; }
+    button{ font-family:inherit; cursor:pointer; }
+
+    .wrap{ max-width:1440px; margin:0 auto; padding:0 2rem; position:relative; z-index:1; }
+    @media (max-width:640px){ .wrap{ padding:0 1.1rem; } }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+    header.site-header{
+        position:sticky; top:0; z-index:100;
+        background:rgba(18,14,26,0.75);
+        backdrop-filter:blur(16px);
+        -webkit-backdrop-filter:blur(16px);
+        border-bottom:1px solid var(--line);
+    }
+    .header-inner{
+        display:flex; align-items:center; justify-content:space-between;
+        gap:1rem; padding:1.1rem 2rem;
+        max-width:1440px; margin:0 auto;
+    }
+    .logo{ display:flex; align-items:center; gap:0.7rem; }
+    .logo-mark{
+        width:34px; height:34px; border-radius:8px;
+        background:
+            linear-gradient(135deg, var(--violet), var(--cyan));
+        position:relative;
+        flex-shrink:0;
+        box-shadow:0 0 0 1px var(--line-strong), 0 6px 18px rgba(139,92,246,0.35);
+    }
+    .logo-mark::after{
+        content:'';
+        position:absolute; inset:9px;
+        background:var(--bg);
+        clip-path:polygon(0 0,50% 0,50% 50%,100% 50%,100% 100%,0 100%);
+    }
+    .logo-text{ font-family:var(--font-display); font-weight:700; font-size:1.15rem; letter-spacing:-0.01em; }
+    .logo-text span{ display:block; font-family:var(--font-body); font-weight:500; font-size:0.68rem; color:var(--text-faint); letter-spacing:0.06em; text-transform:uppercase; margin-top:1px; }
+
+    .header-stats{
+        display:flex; align-items:center; gap:0.9rem;
+        background:var(--bg-elev);
+        border:1px solid var(--line);
+        padding:0.5rem 1.1rem;
+        border-radius:99px;
+        font-size:0.82rem;
+        color:var(--text-muted);
+    }
+    .live-dot{
+        display:inline-flex; align-items:center; gap:0.4rem;
+        color:var(--pink); font-weight:600; font-size:0.72rem;
+        letter-spacing:0.04em; text-transform:uppercase;
+    }
+    .live-dot i{
+        width:7px; height:7px; border-radius:50%; background:var(--pink);
+        box-shadow:0 0 0 0 rgba(255,111,165,0.6);
+        animation:livepulse 1.6s ease-in-out infinite;
+    }
+    @keyframes livepulse{
+        0%{ box-shadow:0 0 0 0 rgba(255,111,165,0.55); }
+        70%{ box-shadow:0 0 0 7px rgba(255,111,165,0); }
+        100%{ box-shadow:0 0 0 0 rgba(255,111,165,0); }
+    }
+    .header-stats b{ color:var(--text); font-weight:700; }
+    .divider-dot{ width:3px; height:3px; border-radius:50%; background:var(--text-faint); }
+
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .hero{
+        position:relative;
+        padding:5.5rem 0 4rem;
+        overflow:hidden;
+    }
+    .hero-grid{
+        display:grid;
+        grid-template-columns:1.05fr 0.95fr;
+        gap:3rem;
+        align-items:center;
+    }
+    @media (max-width:960px){
+        .hero-grid{ grid-template-columns:1fr; }
+    }
+
+    .eyebrow{
+        display:inline-flex; align-items:center; gap:0.5rem;
+        font-family:var(--font-pixel);
+        font-size:0.6rem;
+        color:var(--cyan);
+        background:var(--cyan-soft);
+        border:1px solid rgba(34,211,197,0.35);
+        padding:0.5rem 0.8rem;
+        border-radius:6px;
+        letter-spacing:0.02em;
+        margin-bottom:1.6rem;
+    }
+
+    .hero h1{
+        font-family:var(--font-display);
+        font-weight:700;
+        font-size:clamp(2.4rem, 5vw, 4rem);
+        line-height:1.04;
+        letter-spacing:-0.02em;
+        margin-bottom:1.3rem;
+    }
+    .hero h1 em{
+        font-style:normal;
+        background:linear-gradient(120deg, var(--violet), var(--cyan) 65%);
+        -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    }
+
+    .hero p.lede{
+        color:var(--text-muted);
+        font-size:1.08rem;
+        max-width:44ch;
+        margin-bottom:2.1rem;
+    }
+
+    .hero-cta{ display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+    .btn{
+        display:inline-flex; align-items:center; gap:0.5rem;
+        font-weight:600; font-size:0.9rem;
+        padding:0.85rem 1.5rem;
+        border-radius:12px;
+        border:1px solid transparent;
+        transition:transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .btn-primary{
+        background:linear-gradient(120deg, var(--violet), #6D3FE0);
+        color:#fff;
+        box-shadow:0 8px 24px rgba(139,92,246,0.35);
+    }
+    .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 12px 30px rgba(139,92,246,0.45); }
+    .btn-ghost{
+        background:transparent;
+        border-color:var(--line-strong);
+        color:var(--text);
+    }
+    .btn-ghost:hover{ background:var(--bg-elev); border-color:var(--text-faint); }
+
+    .hero-foot-stats{
+        display:flex; gap:2.2rem; margin-top:2.6rem; flex-wrap:wrap;
+    }
+    .hero-foot-stats div b{
+        display:block; font-family:var(--font-display); font-size:1.5rem; font-weight:700;
+    }
+    .hero-foot-stats div span{ font-size:0.75rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em; }
+
+    /* animated pixel mosaic — signature visual */
+    .pixel-mosaic{
+        aspect-ratio:1/1;
+        display:grid;
+        grid-template-columns:repeat(12,1fr);
+        grid-template-rows:repeat(12,1fr);
+        gap:3px;
+        border-radius:var(--radius-lg);
+        padding:14px;
+        background:var(--bg-elev);
+        border:1px solid var(--line);
+        box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+    }
+    .pixel-mosaic i{
+        border-radius:2px;
+        background:var(--bg-elev-2);
+        animation:mosaicFade 6s ease-in-out infinite;
+        animation-delay:calc(var(--d) * 1s);
+    }
+    @keyframes mosaicFade{
+        0%,100%{ filter:brightness(1); }
+        50%{ filter:brightness(1.9); }
+    }
+
+    /* ============================================================
+       LOADING STRIP
+       ============================================================ */
+    .status-bar{
+        position:relative; z-index:1;
+        padding:1.1rem 0 1.6rem;
+    }
+    .status-inner{
+        display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+        background:var(--bg-elev);
+        border:1px solid var(--line);
+        border-radius:14px;
+        padding:0.9rem 1.2rem;
+    }
+    .status-text{ font-size:0.82rem; color:var(--text-muted); white-space:nowrap; }
+    .progress-track{
+        flex:1; min-width:120px; height:6px;
+        background:rgba(255,255,255,0.06);
+        border-radius:99px; overflow:hidden;
+    }
+    .progress-fill{
+        height:100%; width:0%;
+        background:linear-gradient(90deg, var(--violet), var(--cyan));
+        border-radius:99px;
+        transition:width 0.25s ease;
+    }
+    .status-pct{ font-family:var(--font-display); font-weight:700; font-size:0.85rem; min-width:38px; text-align:right; }
+    .status-token{
+        font-family:var(--font-pixel); font-size:0.6rem;
+        color:var(--gold); background:rgba(245,185,66,0.12);
+        border:1px solid rgba(245,185,66,0.3);
+        padding:0.35rem 0.6rem; border-radius:6px; white-space:nowrap;
+    }
+
+    /* ============================================================
+       GALLERY
+       ============================================================ */
+    .gallery-heading{
+        display:flex; align-items:baseline; justify-content:space-between;
+        margin:1.6rem 0 1.4rem; flex-wrap:wrap; gap:0.6rem;
+    }
+    .gallery-heading h2{
+        font-family:var(--font-display); font-size:1.5rem; font-weight:700;
+    }
+    .gallery-heading p{ color:var(--text-faint); font-size:0.85rem; }
+
+    .gallery{
+        display:grid;
+        grid-template-columns:repeat(auto-fill, minmax(196px, 1fr));
+        gap:1.25rem;
+        padding-bottom:4rem;
+    }
+
+    .nft-card{
+        border-radius:var(--radius-md);
+        overflow:hidden;
+        background:var(--bg-elev);
+        border:1px solid var(--line);
+        display:flex; flex-direction:column;
+        opacity:0;
+        animation:cardIn 0.5s ease forwards;
+        cursor:pointer;
+        position:relative;
+        transition:transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    @keyframes cardIn{
+        from{ opacity:0; transform:translateY(14px); }
+        to{ opacity:1; transform:translateY(0); }
+    }
+    .nft-card:hover{
+        transform:translateY(-6px);
+        border-color:rgba(139,92,246,0.5);
+        box-shadow:0 20px 40px -16px rgba(139,92,246,0.35);
+    }
+
+    /* corner brackets — signature hover frame, echoes pixel-grid selection cursor */
+    .nft-card .bracket{
+        position:absolute; width:16px; height:16px;
+        border:2px solid var(--cyan);
+        opacity:0; transition:opacity 0.25s ease;
+        z-index:2; pointer-events:none;
+    }
+    .nft-card:hover .bracket{ opacity:1; }
+    .bracket.tl{ top:8px; left:8px; border-right:none; border-bottom:none; border-radius:4px 0 0 0; }
+    .bracket.tr{ top:8px; right:8px; border-left:none; border-bottom:none; border-radius:0 4px 0 0; }
+    .bracket.bl{ bottom:8px; left:8px; border-right:none; border-top:none; border-radius:0 0 0 4px; }
+    .bracket.br{ bottom:8px; right:8px; border-left:none; border-top:none; border-radius:0 0 4px 0; }
+
+    .nft-image-wrapper{
+        position:relative; width:100%; padding-top:100%;
+        overflow:hidden; background:var(--bg-elev-2);
+    }
+    .nft-image-wrapper img{
+        position:absolute; inset:0; width:100%; height:100%;
+        object-fit:cover; display:block;
+        image-rendering:pixelated; image-rendering:crisp-edges;
+        opacity:0; filter:blur(6px) saturate(0.8);
+        transition:opacity 0.5s ease, filter 0.6s ease, transform 0.5s ease;
+    }
+    .nft-card:hover .nft-image-wrapper img{ transform:scale(1.06); }
+
+    .placeholder{
+        position:absolute; inset:0;
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        gap:0.5rem; color:var(--text-faint);
+        transition:opacity 0.4s ease;
+    }
+    .placeholder .spinner{
+        width:18px; height:18px; border-radius:50%;
+        border:2px solid rgba(255,255,255,0.08);
+        border-top-color:var(--cyan);
+        animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+    .placeholder span{ font-family:var(--font-pixel); font-size:0.55rem; }
+
+    .nft-info{ padding:0.85rem 0.9rem 1rem; display:flex; flex-direction:column; gap:0.45rem; }
+    .nft-name{ font-family:var(--font-display); font-weight:600; font-size:0.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .nft-id{
+        font-family:var(--font-pixel); font-size:0.55rem; color:var(--gold);
+        background:rgba(245,185,66,0.1); border:1px solid rgba(245,185,66,0.25);
+        padding:0.22rem 0.5rem; border-radius:5px; align-self:flex-start;
+    }
+    .nft-attributes{ display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.15rem; }
+    .attr-badge{
+        font-size:0.62rem; background:rgba(255,255,255,0.04);
+        padding:0.18rem 0.5rem; border-radius:6px; color:var(--text-muted);
+        border:1px solid var(--line); white-space:nowrap; overflow:hidden;
+        text-overflow:ellipsis; max-width:92px;
+    }
+
+    /* ============================================================
+       MODAL — marketplace-style listing view
+       ============================================================ */
+    .modal-overlay{
+        display:none; position:fixed; inset:0; z-index:999;
+        background:rgba(8,6,12,0.82);
+        backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+        justify-content:center; align-items:center; padding:1.6rem;
+        animation:fadeIn 0.25s ease;
+    }
+    .modal-overlay.active{ display:flex; }
+    @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+
+    .modal-content{
+        width:100%; max-width:980px; max-height:88vh;
+        background:var(--bg-elev);
+        border:1px solid var(--line-strong);
+        border-radius:var(--radius-lg);
+        overflow:hidden;
+        display:grid; grid-template-columns:1fr 1fr;
+        box-shadow:0 40px 90px -20px rgba(0,0,0,0.7);
+        animation:modalIn 0.32s cubic-bezier(.22,1.15,.4,1);
+        position:relative;
+    }
+    @keyframes modalIn{
+        from{ opacity:0; transform:translateY(24px) scale(0.97); }
+        to{ opacity:1; transform:translateY(0) scale(1); }
+    }
+    @media (max-width:800px){
+        .modal-content{ grid-template-columns:1fr; overflow-y:auto; }
+    }
+
+    .modal-close{
+        position:absolute; top:1rem; right:1rem; z-index:5;
+        width:38px; height:38px; border-radius:50%;
+        background:rgba(0,0,0,0.4); border:1px solid var(--line-strong);
+        color:var(--text); font-size:1.2rem;
+        display:flex; align-items:center; justify-content:center;
+        transition:background 0.2s ease;
+    }
+    .modal-close:hover{ background:rgba(0,0,0,0.7); }
+
+    .modal-media{
+        position:relative; background:var(--bg-elev-2);
+        display:flex; align-items:center; justify-content:center;
+        padding:2.2rem;
+    }
+    .modal-media-frame{
+        position:relative; width:100%; max-width:420px; aspect-ratio:1/1;
+        border-radius:var(--radius-md);
+        overflow:hidden;
+        border:1px solid var(--line-strong);
+        box-shadow:0 0 0 1px rgba(139,92,246,0.15), 0 20px 50px -14px rgba(0,0,0,0.6);
+    }
+    .modal-media-frame img{
+        position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+        image-rendering:pixelated; image-rendering:crisp-edges;
+    }
+
+    .modal-body{
+        padding:2rem 2.2rem; overflow-y:auto;
+        display:flex; flex-direction:column; gap:1.35rem;
+    }
+    .modal-breadcrumb{
+        font-size:0.72rem; color:var(--cyan); text-transform:uppercase;
+        letter-spacing:0.06em; display:flex; align-items:center; gap:0.4rem;
+        font-weight:600;
+    }
+    .modal-body h2{
+        font-family:var(--font-display); font-size:1.7rem; font-weight:700; letter-spacing:-0.01em;
+    }
+    .modal-token-id{
+        font-family:var(--font-pixel); font-size:0.62rem; color:var(--gold);
+        background:rgba(245,185,66,0.1); border:1px solid rgba(245,185,66,0.28);
+        padding:0.35rem 0.7rem; border-radius:6px; display:inline-block; width:fit-content;
+    }
+    .modal-desc{ color:var(--text-muted); font-size:0.92rem; }
+
+    .modal-actions{ display:flex; gap:0.7rem; flex-wrap:wrap; }
+    .btn-sm{ padding:0.65rem 1.1rem; font-size:0.8rem; border-radius:10px; }
+
+    .section-label{
+        font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em;
+        color:var(--text-faint); font-weight:700; margin-bottom:0.7rem;
+        display:flex; align-items:center; gap:0.5rem;
+    }
+    .section-label::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+    .trait-grid{
+        display:grid; grid-template-columns:repeat(2,1fr); gap:0.6rem;
+    }
+    @media (max-width:420px){ .trait-grid{ grid-template-columns:1fr; } }
+    .trait-card{
+        background:var(--bg-elev-2);
+        border:1px solid var(--line);
+        border-radius:10px; padding:0.65rem 0.8rem;
+        transition:border-color 0.2s ease;
+    }
+    .trait-card:hover{ border-color:rgba(139,92,246,0.45); }
+    .trait-type{ font-size:0.62rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--violet); font-weight:700; }
+    .trait-value{ font-family:var(--font-display); font-size:0.92rem; font-weight:600; margin:0.15rem 0 0.25rem; }
+    .trait-rarity{ font-size:0.68rem; color:var(--text-faint); }
+
+    .toast{
+        position:fixed; bottom:1.6rem; left:50%; transform:translateX(-50%) translateY(20px);
+        background:var(--bg-elev); border:1px solid var(--line-strong);
+        padding:0.7rem 1.2rem; border-radius:10px; font-size:0.82rem;
+        opacity:0; pointer-events:none; transition:all 0.3s ease;
+        z-index:1200; display:flex; align-items:center; gap:0.5rem;
+        box-shadow:0 12px 30px rgba(0,0,0,0.5);
+    }
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast i{ width:7px; height:7px; border-radius:50%; background:var(--cyan); }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    footer{
+        border-top:1px solid var(--line);
+        padding:2.4rem 0 3rem; margin-top:1rem;
+        text-align:center; color:var(--text-faint); font-size:0.78rem;
+        position:relative; z-index:1;
+    }
+    footer .cid{
+        font-family:var(--font-pixel); font-size:0.55rem; color:var(--text-muted);
+        word-break:break-all; display:block; margin-top:0.6rem; max-width:640px; margin-inline:auto;
+    }
+
+    ::-webkit-scrollbar{ width:8px; }
+    ::-webkit-scrollbar-track{ background:transparent; }
+    ::-webkit-scrollbar-thumb{ background:var(--bg-elev-2); border-radius:8px; }
+    ::-webkit-scrollbar-thumb:hover{ background:var(--violet); }
+
+    @media (prefers-reduced-motion: reduce){
+        *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+    }
+</style>
 </head>
 <body>
 
-<div class="card">
-  <h1>Robinhood NFT Sales & Holder Analytics</h1>
-  <p class="subtitle">অন-চেইন রিয়েল-টাইম ডেটা এক্সপোর্টার</p>
-
-  <div class="info-box">
-    <strong>নেটওয়ার্ক:</strong> <span>Robinhood Mainnet</span><br>
-    <strong>কন্টাক্ট এড্রেস:</strong> <span>0x68e5a6aaf2503940f0337243063ab8f4da6bedec</span>
-  </div>
-
-  <button id="fetchBtn" class="btn btn-fetch" onclick="startProcess()">১. ব্লকচেইন থেকে রিয়েল ডেটা ফেচ করুন</button>
-
-  <div class="status-container">
-    <div id="status">স্ট্যাটাস: ফেচ করতে উপরের বাটনে ক্লিক করুন</div>
-    <div class="progress-bar" id="progressBarContainer">
-      <div class="progress" id="progressBar"></div>
+<header class="site-header">
+    <div class="header-inner">
+        <div class="logo">
+            <div class="logo-mark"></div>
+            <div class="logo-text">NFT Galaxy<span>24×24 Pixel Collection</span></div>
+        </div>
+        <div class="header-stats">
+            <span class="live-dot"><i></i>Live</span>
+            <span class="divider-dot"></span>
+            <span>Supply <b id="totalCount">0</b></span>
+            <span class="divider-dot"></span>
+            <span>Loaded <b id="loadedCount">0</b></span>
+        </div>
     </div>
-  </div>
+</header>
 
-  <hr style="border: 0.5px solid #30363d; margin: 15px 0;">
+<section class="hero">
+    <div class="wrap hero-grid">
+        <div>
+            <span class="eyebrow">◆ FULLY ON IPFS</span>
+            <h1>Ten thousand faces.<br><em>Twenty-four pixels</em> each.</h1>
+            <p class="lede">A generative pixel-portrait collection with every trait, image and byte of metadata pinned permanently to IPFS — no servers, no shortcuts.</p>
+            <div class="hero-cta">
+                <a href="#gallery" class="btn btn-primary">Explore the Collection ↓</a>
+                <a href="#" id="heroIpfsLink" target="_blank" rel="noopener" class="btn btn-ghost">View Metadata Root</a>
+            </div>
+            <div class="hero-foot-stats">
+                <div><b>10,000</b><span>Total Supply</span></div>
+                <div><b>24×24</b><span>Canvas Size</span></div>
+                <div><b id="heroTraitCount">—</b><span>Trait Categories</span></div>
+            </div>
+        </div>
+        <div class="pixel-mosaic" id="pixelMosaic" aria-hidden="true"></div>
+    </div>
+</section>
 
-  <button id="btnCsv1" class="btn btn-download" onclick="downloadCSV(1)">
-    🛒 ১. রিয়েল ক্রেতাদের তালিকা (অন্তত ১টি কিনেছেন + মোট কেনা সংখ্যা)
-  </button>
-  <button id="btnCsv2" class="btn btn-download" onclick="downloadCSV(2)">
-    🏆 ২. বর্তমান টপ ৫০০ হোল্ডার (CSV)
-  </button>
-  <button id="btnCsv3" class="btn btn-download" onclick="downloadCSV(3)">
-    📋 ৩. বর্তমান সকল হোল্ডার লিস্ট (CSV)
-  </button>
+<div class="wrap">
+    <div class="status-bar">
+        <div class="status-inner">
+            <span class="status-text" id="statusMessage">Initializing gallery…</span>
+            <div class="progress-track"><div class="progress-fill" id="progressBar"></div></div>
+            <span class="status-pct" id="percentageDisplay">0%</span>
+            <span class="status-token" id="currentToken">#0</span>
+        </div>
+    </div>
 
-  <div class="footer">Powered by Robinhood Direct On-Chain RPC</div>
+    <div class="gallery-heading" id="gallery">
+        <h2>Browse the Collection</h2>
+        <p>Click any piece for full trait breakdown and live rarity</p>
+    </div>
+
+    <div class="gallery" id="galleryContainer"></div>
 </div>
 
+<footer>
+    <p>Metadata &amp; imagery permanently stored on IPFS</p>
+    <span class="cid" id="footerCid"></span>
+</footer>
+
+<!-- ===== MARKETPLACE-STYLE MODAL ===== -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+        <button class="modal-close" id="modalClose">✕</button>
+
+        <div class="modal-media">
+            <div class="modal-media-frame">
+                <img id="modalImage" src="" alt="NFT" />
+            </div>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-breadcrumb">NFT Galaxy Collection</div>
+            <div>
+                <h2 id="modalName">—</h2>
+                <span class="modal-token-id" id="modalId">#0000</span>
+            </div>
+            <p class="modal-desc" id="modalDescription">—</p>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary btn-sm" id="viewImageBtn">View Full Image ↗</button>
+                <button class="btn btn-ghost btn-sm" id="viewMetaBtn">View Raw Metadata ↗</button>
+                <button class="btn btn-ghost btn-sm" id="copyLinkBtn">Copy Metadata URI</button>
+            </div>
+
+            <div>
+                <div class="section-label">Traits &amp; live rarity</div>
+                <div class="trait-grid" id="modalAttrs"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"><i></i><span id="toastMsg">Copied</span></div>
+
 <script>
-  const RPC_URL = "https://robinhood-mainnet.g.alchemy.com/v2/FXZjUazW6nIgeW8SRwCDZ";
-  const CONTRACT_ADDRESS = "0x68e5a6aaf2503940f0337243063ab8f4da6bedec";
-  
-  // ERC-721 / ERC-1155 Transfer Event Signature Topic
-  const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+(function() {
+    'use strict';
 
-  let realBuyersMap = {};   // { buyerAddress: buyCount }
-  let currentHoldersMap = {}; // { address: currentBalance }
+    /* ===== CONFIG (unchanged from source) ===== */
+    const BASE_URI = 'ipfs://bafybeig2jy67pvzdzihamxqh3lzto2326d74cqzp42mgwbnie7566q2pia/';
+    const TOTAL_SUPPLY = 10000;
+    const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
 
-  function cleanAddress(topic) {
-    if (!topic) return "";
-    return "0x" + topic.substring(26).toLowerCase();
-  }
+    const GALLERY = document.getElementById('galleryContainer');
+    const PROGRESS_BAR = document.getElementById('progressBar');
+    const STATUS_TEXT = document.getElementById('statusMessage');
+    const PERCENTAGE = document.getElementById('percentageDisplay');
+    const LOADED_COUNT = document.getElementById('loadedCount');
+    const TOTAL_COUNT = document.getElementById('totalCount');
+    const CURRENT_TOKEN = document.getElementById('currentToken');
+    const HERO_TRAIT_COUNT = document.getElementById('heroTraitCount');
+    const FOOTER_CID = document.getElementById('footerCid');
+    const HERO_IPFS_LINK = document.getElementById('heroIpfsLink');
 
-  async function startProcess() {
-    const fetchBtn = document.getElementById("fetchBtn");
-    const status = document.getElementById("status");
-    const progressBar = document.getElementById("progressBar");
-    const progressBarContainer = document.getElementById("progressBarContainer");
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalClose = document.getElementById('modalClose');
+    const modalImage = document.getElementById('modalImage');
+    const modalName = document.getElementById('modalName');
+    const modalId = document.getElementById('modalId');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalAttrs = document.getElementById('modalAttrs');
+    const viewImageBtn = document.getElementById('viewImageBtn');
+    const viewMetaBtn = document.getElementById('viewMetaBtn');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
 
-    fetchBtn.disabled = true;
-    progressBarContainer.style.display = "block";
-    status.innerText = "ব্লকচেইন থেকে ইভেন্ট ল্যাব (Logs) স্ক্যান করা হচ্ছে...";
-    status.style.color = "#d29922";
-    progressBar.style.width = "30%";
+    const metadataCache = new Map();
+    const PLACEHOLDER_IMG = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"%3E%3C/svg%3E';
 
-    realBuyersMap = {};
-    currentHoldersMap = {};
+    // live trait-rarity accumulator, built as metadata streams in
+    const traitCounts = {};   // { trait_type: { value: count } }
+    let scannedCount = 0;
 
-    try {
-      const payload = {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "eth_getLogs",
-        params: [{
-          fromBlock: "0x0",
-          toBlock: "latest",
-          address: CONTRACT_ADDRESS,
-          topics: [TRANSFER_TOPIC]
-        }]
-      };
+    function ipfsToHttp(uri) {
+        if (!uri) return '';
+        if (uri.startsWith('ipfs://')) return uri.replace('ipfs://', IPFS_GATEWAY);
+        return uri;
+    }
 
-      const response = await fetch(RPC_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+    function recordTraits(metadata) {
+        if (!metadata || !Array.isArray(metadata.attributes)) return;
+        scannedCount++;
+        metadata.attributes.forEach(attr => {
+            const type = attr.trait_type || 'Trait';
+            const value = typeof attr.value === 'string' ? attr.value : JSON.stringify(attr.value);
+            if (!traitCounts[type]) traitCounts[type] = {};
+            traitCounts[type][value] = (traitCounts[type][value] || 0) + 1;
+        });
+        HERO_TRAIT_COUNT.textContent = Object.keys(traitCounts).length || '—';
+    }
 
-      const resData = await response.json();
+    function rarityLabel(type, value) {
+        const bucket = traitCounts[type];
+        if (!bucket || !scannedCount) return 'Calculating…';
+        const count = bucket[value] || 0;
+        const pct = ((count / scannedCount) * 100);
+        const scope = scannedCount >= TOTAL_SUPPLY ? 'of collection' : `of ${scannedCount.toLocaleString()} scanned`;
+        return `${pct < 0.1 ? '<0.1' : pct.toFixed(1)}% ${scope}`;
+    }
 
-      if (resData.error) {
-        throw new Error(resData.error.message || "RPC Error");
-      }
-
-      const logs = resData.result || [];
-      progressBar.style.width = "70%";
-      status.innerText = `মোট ${logs.length} টি অন-চেইন ট্রান্সফার পাওয়া গেছে। হিসাব করা হচ্ছে...`;
-
-      const zeroAddr = "0x0000000000000000000000000000000000000000";
-
-      logs.forEach(log => {
-        if (log.topics && log.topics.length >= 3) {
-          const fromAddr = cleanAddress(log.topics[1]);
-          const toAddr = cleanAddress(log.topics[2]);
-
-          // 1. Current Balance Calculation (+1 to Receiver, -1 to Sender)
-          if (toAddr && toAddr !== zeroAddr) {
-            currentHoldersMap[toAddr] = (currentHoldersMap[toAddr] || 0) + 1;
-          }
-          if (fromAddr && fromAddr !== zeroAddr) {
-            currentHoldersMap[fromAddr] = (currentHoldersMap[fromAddr] || 0) - 1;
-          }
-
-          // 2. Real Buyer Calculation
-          // If fromAddr is NOT 0x0 (not minting), then 'toAddr' bought/received from someone
-          if (fromAddr && fromAddr !== zeroAddr && toAddr && toAddr !== zeroAddr) {
-            realBuyersMap[toAddr] = (realBuyersMap[toAddr] || 0) + 1;
-          }
+    async function fetchMetadata(tokenId) {
+        if (metadataCache.has(tokenId)) return metadataCache.get(tokenId);
+        const uri = `${BASE_URI}${tokenId}`;
+        const httpUrl = ipfsToHttp(uri);
+        try {
+            const response = await fetch(httpUrl, { headers: { 'Accept': 'application/json' } });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            data.__metaUri = httpUrl;
+            metadataCache.set(tokenId, data);
+            recordTraits(data);
+            return data;
+        } catch (error) {
+            console.warn(`Token #${tokenId} failed to load:`, error);
+            const fallback = {
+                name: `NFT #${tokenId}`,
+                description: 'Metadata could not be loaded.',
+                image: `${BASE_URI}${tokenId}`,
+                attributes: [],
+                background_color: null,
+                __metaUri: httpUrl
+            };
+            metadataCache.set(tokenId, fallback);
+            return fallback;
         }
-      });
-
-      progressBar.style.width = "100%";
-      const uniqueBuyersCount = Object.keys(realBuyersMap).length;
-      
-      // Filter out holders with balance > 0
-      const activeHolders = Object.keys(currentHoldersMap)
-        .filter(addr => currentHoldersMap[addr] > 0);
-
-      status.innerText = `সফল! রিয়েল ক্রেতা: ${uniqueBuyersCount} জন | বর্তমান হোল্ডার: ${activeHolders.length} জন`;
-      status.style.color = "#3fb950";
-
-      document.getElementById("btnCsv1").style.display = "block";
-      document.getElementById("btnCsv2").style.display = "block";
-      document.getElementById("btnCsv3").style.display = "block";
-
-    } catch (err) {
-      console.error(err);
-      status.innerText = "ভুল হয়েছে! RPC রিকোয়েস্ট ব্যর্থ হয়েছে।";
-      status.style.color = "#f85149";
-      fetchBtn.disabled = false;
-    }
-  }
-
-  function downloadCSV(type) {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    let filename = "";
-
-    if (type === 1) {
-      // 1. Real Buyers List
-      csvContent += "Buyer Wallet Address (To Address),Total Times Bought\n";
-      const sortedBuyers = Object.keys(realBuyersMap)
-        .map(addr => ({ address: addr, count: realBuyersMap[addr] }))
-        .sort((a, b) => b.count - a.count);
-
-      sortedBuyers.forEach(b => {
-        csvContent += `"${b.address}",${b.count}\n`;
-      });
-      filename = "Real_NFT_Buyers_List.csv";
-
-    } else if (type === 2) {
-      // 2. Top 500 Holders
-      const holdersList = Object.keys(currentHoldersMap)
-        .map(addr => ({ address: addr, balance: currentHoldersMap[addr] }))
-        .filter(h => h.balance > 0)
-        .sort((a, b) => b.balance - a.balance)
-        .slice(0, 500);
-
-      csvContent += "Rank,Wallet Address,Current NFT Balance\n";
-      holdersList.forEach((h, index) => {
-        csvContent += `${index + 1},"${h.address}",${h.balance}\n`;
-      });
-      filename = "Top_500_Holders.csv";
-
-    } else if (type === 3) {
-      // 3. All Current Holders
-      const holdersList = Object.keys(currentHoldersMap)
-        .map(addr => ({ address: addr, balance: currentHoldersMap[addr] }))
-        .filter(h => h.balance > 0)
-        .sort((a, b) => b.balance - a.balance);
-
-      csvContent += "Wallet Address,Current NFT Balance\n";
-      holdersList.forEach(h => {
-        csvContent += `"${h.address}",${h.balance}\n`;
-      });
-      filename = "All_Current_Holders.csv";
     }
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
+    function loadImage(imgElement, imageUri) {
+        if (!imageUri) { imgElement.src = PLACEHOLDER_IMG; return; }
+        imgElement.src = ipfsToHttp(imageUri);
+        imgElement.onerror = function() { this.src = PLACEHOLDER_IMG; };
+    }
+
+    function isValidHexColor(color) {
+        if (!color) return false;
+        const hex = color.replace('#', '');
+        return /^[0-9A-Fa-f]{6}$/.test(hex) || /^[0-9A-Fa-f]{3}$/.test(hex);
+    }
+
+    function showToast(msg) {
+        toastMsg.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function openModal(tokenId, metadata, imageUrl) {
+        const imgHttp = ipfsToHttp(imageUrl || metadata?.image || `${BASE_URI}${tokenId}`);
+        modalImage.src = imgHttp;
+        modalName.textContent = metadata?.name || `NFT #${tokenId}`;
+        modalId.textContent = `Token #${tokenId}`;
+        modalDescription.textContent = metadata?.description || 'No description available.';
+
+        modalAttrs.innerHTML = '';
+        if (metadata?.attributes && Array.isArray(metadata.attributes) && metadata.attributes.length > 0) {
+            metadata.attributes.forEach(attr => {
+                const type = attr.trait_type || 'Trait';
+                const value = typeof attr.value === 'string' ? attr.value : JSON.stringify(attr.value);
+                const card = document.createElement('div');
+                card.className = 'trait-card';
+                card.innerHTML = `
+                    <div class="trait-type">${type}</div>
+                    <div class="trait-value">${value}</div>
+                    <div class="trait-rarity">${rarityLabel(type, value)}</div>
+                `;
+                modalAttrs.appendChild(card);
+            });
+        } else {
+            const empty = document.createElement('div');
+            empty.className = 'trait-card';
+            empty.innerHTML = `<div class="trait-value">No traits recorded</div>`;
+            modalAttrs.appendChild(empty);
+        }
+
+        viewImageBtn.onclick = () => window.open(imgHttp, '_blank', 'noopener');
+        viewMetaBtn.onclick = () => window.open(metadata?.__metaUri || `${BASE_URI}${tokenId}`, '_blank', 'noopener');
+        copyLinkBtn.onclick = () => {
+            const uri = `${BASE_URI}${tokenId}`;
+            navigator.clipboard?.writeText(uri).then(() => showToast('Metadata URI copied')).catch(() => showToast('Could not copy'));
+        };
+
+        modalOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modalOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    function createCard(tokenId, metadata) {
+        const card = document.createElement('div');
+        card.className = 'nft-card';
+
+        const bgColor = metadata?.background_color;
+        card.style.background = (bgColor && isValidHexColor(bgColor)) ? `#${bgColor.replace('#','')}` : 'var(--bg-elev)';
+
+        ['tl','tr','bl','br'].forEach(pos => {
+            const b = document.createElement('div');
+            b.className = `bracket ${pos}`;
+            card.appendChild(b);
+        });
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'nft-image-wrapper';
+        if (bgColor && isValidHexColor(bgColor)) wrapper.style.background = `#${bgColor.replace('#','')}`;
+
+        const placeholder = document.createElement('div');
+        placeholder.className = 'placeholder';
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        placeholder.appendChild(spinner);
+        const label = document.createElement('span');
+        label.textContent = `#${tokenId}`;
+        placeholder.appendChild(label);
+        wrapper.appendChild(placeholder);
+
+        const img = document.createElement('img');
+        img.alt = metadata?.name || `NFT #${tokenId}`;
+        img.loading = 'lazy';
+        wrapper.appendChild(img);
+
+        img.onload = function() {
+            placeholder.style.opacity = '0';
+            this.style.opacity = '1';
+            this.style.filter = 'blur(0) saturate(1)';
+            setTimeout(() => { placeholder.style.display = 'none'; }, 400);
+        };
+        img.onerror = function() {
+            placeholder.style.display = 'flex';
+            placeholder.style.opacity = '1';
+            const spin = placeholder.querySelector('.spinner');
+            if (spin) spin.style.display = 'none';
+            label.textContent = `⚠ #${tokenId}`;
+        };
+
+        const imageUri = metadata?.image || `${BASE_URI}${tokenId}`;
+        loadImage(img, imageUri);
+        card.appendChild(wrapper);
+
+        const info = document.createElement('div');
+        info.className = 'nft-info';
+
+        const name = document.createElement('div');
+        name.className = 'nft-name';
+        name.textContent = metadata?.name || `NFT #${tokenId}`;
+        info.appendChild(name);
+
+        const idBadge = document.createElement('div');
+        idBadge.className = 'nft-id';
+        idBadge.textContent = `#${tokenId}`;
+        info.appendChild(idBadge);
+
+        if (metadata?.attributes && Array.isArray(metadata.attributes) && metadata.attributes.length > 0) {
+            const attrContainer = document.createElement('div');
+            attrContainer.className = 'nft-attributes';
+            metadata.attributes.slice(0, 3).forEach(attr => {
+                const badge = document.createElement('span');
+                badge.className = 'attr-badge';
+                const value = typeof attr.value === 'string' ? attr.value : JSON.stringify(attr.value);
+                badge.textContent = `${attr.trait_type || ''}: ${value}`;
+                attrContainer.appendChild(badge);
+            });
+            if (metadata.attributes.length > 3) {
+                const more = document.createElement('span');
+                more.className = 'attr-badge';
+                more.textContent = `+${metadata.attributes.length - 3}`;
+                attrContainer.appendChild(more);
+            }
+            info.appendChild(attrContainer);
+        }
+
+        card.appendChild(info);
+        card.addEventListener('click', () => openModal(tokenId, metadata, imageUri));
+        return card;
+    }
+
+    function buildMosaic() {
+        const mosaic = document.getElementById('pixelMosaic');
+        const palette = ['var(--violet)', 'var(--cyan)', 'var(--gold)', 'var(--pink)', 'var(--bg-elev-2)'];
+        for (let i = 0; i < 144; i++) {
+            const cell = document.createElement('i');
+            const color = Math.random() > 0.65 ? palette[Math.floor(Math.random() * palette.length)] : 'var(--bg-elev-2)';
+            cell.style.background = color;
+            cell.style.setProperty('--d', (Math.random() * 6).toFixed(2));
+            mosaic.appendChild(cell);
+        }
+    }
+
+    async function loadAllNFTs() {
+        TOTAL_COUNT.textContent = TOTAL_SUPPLY.toLocaleString();
+        FOOTER_CID.textContent = BASE_URI;
+        HERO_IPFS_LINK.href = ipfsToHttp(BASE_URI);
+        GALLERY.innerHTML = '';
+        let loaded = 0;
+
+        for (let tokenId = 1; tokenId <= TOTAL_SUPPLY; tokenId++) {
+            CURRENT_TOKEN.textContent = `#${tokenId}`;
+            STATUS_TEXT.textContent = `Loading token #${tokenId}…`;
+
+            const metadata = await fetchMetadata(tokenId);
+            const card = createCard(tokenId, metadata);
+            GALLERY.appendChild(card);
+
+            loaded++;
+            LOADED_COUNT.textContent = loaded.toLocaleString();
+            const percent = Math.round((loaded / TOTAL_SUPPLY) * 100);
+            PROGRESS_BAR.style.width = `${percent}%`;
+            PERCENTAGE.textContent = `${percent}%`;
+
+            if (loaded % 30 === 0) await new Promise(r => setTimeout(r, 5));
+        }
+
+        STATUS_TEXT.textContent = 'All tokens loaded.';
+        PROGRESS_BAR.style.width = '100%';
+        PERCENTAGE.textContent = '100%';
+        LOADED_COUNT.textContent = TOTAL_SUPPLY.toLocaleString();
+        CURRENT_TOKEN.textContent = `#${TOTAL_SUPPLY}`;
+    }
+
+    buildMosaic();
+    loadAllNFTs().catch(err => {
+        console.error('Gallery failed to load:', err);
+        STATUS_TEXT.textContent = 'Something went wrong. Please refresh and try again.';
+    });
+
+})();
 </script>
-
 </body>
 </html>
