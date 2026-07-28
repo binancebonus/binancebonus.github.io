@@ -231,15 +231,24 @@
         border:1px solid var(--line);
         box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
     }
-    .pixel-mosaic i{
+    .pixel-mosaic .mosaic-cell{
+        position:relative;
         border-radius:2px;
+        overflow:hidden;
         background:var(--bg-elev-2);
-        animation:mosaicFade 6s ease-in-out infinite;
-        animation-delay:calc(var(--d) * 1s);
     }
-    @keyframes mosaicFade{
-        0%,100%{ filter:brightness(1); }
-        50%{ filter:brightness(1.9); }
+    .pixel-mosaic .mosaic-cell.tinted{ background:var(--cell-tint, var(--bg-elev-2)); }
+    .pixel-mosaic .mosaic-cell img{
+        position:absolute; inset:0; width:100%; height:100%;
+        object-fit:cover;
+        image-rendering:pixelated; image-rendering:crisp-edges;
+        opacity:0;
+        transform:scale(1.18);
+        transition:opacity 0.7s cubic-bezier(.22,.8,.32,1), transform 0.9s cubic-bezier(.22,.8,.32,1);
+    }
+    .pixel-mosaic .mosaic-cell img.active{
+        opacity:1;
+        transform:scale(1);
     }
 
     /* ============================================================
@@ -685,6 +694,7 @@
             data.__metaUri = httpUrl;
             metadataCache.set(tokenId, data);
             recordTraits(data);
+            if (data.image) imagePool.push(ipfsToHttp(data.image));
             return data;
         } catch (error) {
             console.warn(`Token #${tokenId} failed to load:`, error);
@@ -855,16 +865,58 @@
         return card;
     }
 
+    // pool of image URLs, filled as real NFT metadata streams in
+    const imagePool = [];
+    let mosaicCells = [];
+
     function buildMosaic() {
         const mosaic = document.getElementById('pixelMosaic');
-        const palette = ['var(--violet)', 'var(--cyan)', 'var(--gold)', 'var(--pink)', 'var(--bg-elev-2)'];
+        const tints = ['var(--violet)', 'var(--cyan)', 'var(--gold)', 'var(--pink)'];
+        mosaic.innerHTML = '';
         for (let i = 0; i < 144; i++) {
-            const cell = document.createElement('i');
-            const color = Math.random() > 0.65 ? palette[Math.floor(Math.random() * palette.length)] : 'var(--bg-elev-2)';
-            cell.style.background = color;
-            cell.style.setProperty('--d', (Math.random() * 6).toFixed(2));
+            const cell = document.createElement('div');
+            cell.className = 'mosaic-cell';
+            // faint base tint so empty cells still feel alive before images arrive
+            if (Math.random() > 0.72) {
+                cell.classList.add('tinted');
+                cell.style.setProperty('--cell-tint', tints[Math.floor(Math.random() * tints.length)]);
+                cell.style.opacity = '0.35';
+            }
+            const imgA = document.createElement('img');
+            const imgB = document.createElement('img');
+            cell.appendChild(imgA);
+            cell.appendChild(imgB);
             mosaic.appendChild(cell);
         }
+        mosaicCells = Array.from(mosaic.querySelectorAll('.mosaic-cell'));
+    }
+
+    // continuously swap one cell at a time to a freshly-loaded NFT thumbnail,
+    // so the mosaic visibly fills in "one after another" with a soft crossfade
+    function startMosaicCycle() {
+        setInterval(() => {
+            if (!imagePool.length || !mosaicCells.length) return;
+            const cell = mosaicCells[Math.floor(Math.random() * mosaicCells.length)];
+            const [layerA, layerB] = cell.querySelectorAll('img');
+            const activeLayer = layerA.classList.contains('active') ? layerA : layerB;
+            const nextLayer = activeLayer === layerA ? layerB : layerA;
+
+            let src = imagePool[Math.floor(Math.random() * imagePool.length)];
+            if (imagePool.length > 1) {
+                let guard = 0;
+                while (src === activeLayer.src && guard < 5) {
+                    src = imagePool[Math.floor(Math.random() * imagePool.length)];
+                    guard++;
+                }
+            }
+
+            nextLayer.onload = () => {
+                cell.style.opacity = '1';
+                nextLayer.classList.add('active');
+                activeLayer.classList.remove('active');
+            };
+            nextLayer.src = src;
+        }, 200);
     }
 
     async function loadAllNFTs() {
@@ -899,6 +951,7 @@
     }
 
     buildMosaic();
+    startMosaicCycle();
     loadAllNFTs().catch(err => {
         console.error('Gallery failed to load:', err);
         STATUS_TEXT.textContent = 'Something went wrong. Please refresh and try again.';
